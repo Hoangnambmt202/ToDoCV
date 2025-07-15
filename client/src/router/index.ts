@@ -17,7 +17,7 @@ const router = createRouter({
     {
       path: '/dashboard',
       component: Dashboard,
-      meta: { layout: 'default', requiresAuth: true },
+      meta: { layout: 'default', requiresAuth: false},
     },
     {
       path: '/planned',

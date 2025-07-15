@@ -29,9 +29,8 @@ const handleLogin = async () => {
       password: password.value,
     });
   
-    // Lưu token vào localStorage
-    sessionStorage.setItem('access_token', response.data.access_token);
-    toast.success(response.data.message + `, đang chuyển hướng`, {
+
+    toast.success(response?.data.message + `Chào mừng ` + response?.data.name, {
       position: 'top-right',
       autoClose: 3000,
       // Chuyển tới dashboard
