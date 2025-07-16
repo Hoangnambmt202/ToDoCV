@@ -1,10 +1,11 @@
-<script lang="ts" setup>
-import AuthService from '@/services/AuthService';
-import { useHead } from '@vueuse/head';
+<script lang="js" setup>
 import { ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 import { toast } from 'vue3-toastify';
+import { useHead } from '@vueuse/head';
 
+import AuthService from '@/services/AuthService';
+import { useAuthStore } from '@/stores/auth';
 
 useHead({
   title: 'Login | ToDoCV',
@@ -20,6 +21,8 @@ const password = ref('');
 const loading = ref(false);
 const error = ref('');
 const router = useRouter();
+const authStore = useAuthStore();
+
 const handleLogin = async () => {
   loading.value = true;
   error.value = '';
@@ -29,14 +32,16 @@ const handleLogin = async () => {
       password: password.value,
     });
   
-
-    toast.success(response?.data.message + `Chào mừng ` + response?.data.name, {
+    authStore.setUser(response.data.data);
+    
+    
+    toast.success(response?.data.message + `. Chào mừng ` + response?.data.data.name  , {
       position: 'top-right',
       autoClose: 3000,
       // Chuyển tới dashboard
       onClose: () => router.push('/dashboard')
     });
-  } catch (err: any) {
+  } catch (err) {
     if (err.response?.status === 422) {
       error.value = 'Vui lòng kiểm tra lại email và mật khẩu';
     } else {

@@ -1,4 +1,5 @@
 import api from './axios';
+
 export default {
     // 1. Lấy danh sách công việc
     async getTasks() {
@@ -19,5 +20,9 @@ export default {
     async deleteTask(taskId) {
         await api.get('/sanctum/csrf-cookie'); // Lấy CSRF cookie
         return api.delete(`/api/tasks/${taskId}`);
+    },
+    // 5. lấy chi tiết công việc
+    async showTask(taskId) {
+        return api.get(`/api/tasks/show/${taskId}`);
     }
 };

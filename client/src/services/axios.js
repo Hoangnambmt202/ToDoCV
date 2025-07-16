@@ -14,6 +14,17 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+// Interceptor để bắt lỗi CSRF hết hạn
+api.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response && error.response.status === 419) {
+      // Chuyển hướng đến đăng nhập
+      window.location.href = '/login'
+    }
+    return Promise.reject(error)
+  }
+)
 
 // Helper: lấy cookie từ trình duyệt
 function getCookie(name) {

@@ -54,7 +54,7 @@ const activeItem = ref('today')
 const searchQuery = ref('')
 
 const sidebarClasses = computed(() => {
-  return isOpen.value ? 'translate-x-0 !w-20' : '-translate-x-full md:translate-x-0'
+  return isOpen.value ? 'translate-x-0 !w-80' : '-translate-x-full md:translate-x-0 hidden' 
 })
 
 const handleItemClick = (itemId: string) => {
@@ -109,7 +109,7 @@ const closeSidebar = () => {
 <template>
   <button
     @click="toggleSidebar"
-    class="fixed top-17 left-4 z-50 p-2 rounded-lg bg-white shadow-lg hover:shadow-xl transition-all duration-200"
+    class="fixed top-20 left-4 z-50 p-2 rounded-lg bg-white shadow-lg hover:shadow-xl transition-all duration-200"
   >
     <Bars3Icon class="w-7 h-7 text-gray-700" />
   </button>

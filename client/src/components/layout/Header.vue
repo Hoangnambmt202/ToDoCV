@@ -5,8 +5,9 @@ defineOptions({
   name: 'HeaderComponent',
 })
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-
+import { useAuthStore } from '@/stores/auth'
 const isOpen = ref(false)
+const authStore = useAuthStore();
 
 function toggleDropdown() {
   isOpen.value = !isOpen.value
@@ -65,33 +66,48 @@ onBeforeUnmount(() => {
         <UserIcon class="w-6 h-6 text-black" />
          
       </button> -->
-      <div class="relative inline-block text-left">
-        <img id="avatarButton" type="button" class="w-10 h-10 rounded-full cursor-pointer " src="@/assets/imgs/Logo.png"
-          alt="User dropdown" @click="toggleDropdown" />
+      <div v-if="authStore.user">
+        <div class="relative flex items-center gap-2 text-left">
 
-        <!-- Dropdown -->
-        <div v-if="isOpen"
-          class="absolute z-10 top-full right-0 mt-2 p-4 bg-white divide-y divide-gray-100 rounded-lg shadow-sm  dark:bg-gray-700 dark:divide-gray-600 space-y-2">
-          <div class="text-sm text-gray-900 dark:text-white">
-            <div>Bonnie Green</div>
-            <div class="font-medium truncate">name@flowbite.com</div>
+          <img 
+            id="avatarButton" 
+            type="button" 
+            class="w-10 h-10 rounded-full cursor-pointer "
+            :src="authStore.user?.avatar || '@/assets/imgs/Logo.png'" 
+            alt="User dropdown" 
+            @click="toggleDropdown" />
+          {{ authStore.user.name }}
+          <div v-if="isOpen"
+            class="absolute z-10 top-full right-0 mt-2 p-4 bg-white divide-y divide-gray-100 rounded-lg shadow-sm  dark:bg-gray-700 dark:divide-gray-600 space-y-2">
+            <div class="text-sm text-gray-900 dark:text-white">
+              <div>{{ authStore.user.name }}</div>
+              <div class="font-medium truncate">{{ authStore.user.email }}</div>
+            </div>
+            <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
+              <li><a href="#"
+                  class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Dashboard</a>
+              </li>
+              <li><a href="#"
+                  class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Settings</a>
+              </li>
+              <li><a href="#"
+                  class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Earnings</a>
+              </li>
+            </ul>
+            <div class="py-1">
+              <a href="#"
+                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Sign
+                out</a>
+            </div>
           </div>
-          <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
-            <li><a href="#"
-                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Dashboard</a>
-            </li>
-            <li><a href="#"
-                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Settings</a></li>
-            <li><a href="#"
-                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Earnings</a></li>
-          </ul>
-          <div class="py-1">
-            <a href="#"
-              class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Sign
-              out</a>
-          </div>
-        </div>
+
       </div>
+      </div>
+      <div v-else>
+        <img id="avatarButton" type="button" class="w-10 h-10 rounded-full cursor-pointer "
+          src="@/assets/imgs/Logo.png" alt="User dropdown" @click="toggleDropdown" />
+      </div>
+      
 
 
     </div>

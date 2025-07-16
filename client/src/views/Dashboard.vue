@@ -1,9 +1,11 @@
 <script lang="ts" setup>
 import HeadSection from '@/components/sections/HeadSection.vue'
-import { SunIcon } from '@heroicons/vue/24/outline'
+import { InformationCircleIcon, SunIcon } from '@heroicons/vue/24/outline'
 import { useHead } from '@vueuse/head'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import TaskService from '@/services/TaskService'
+import { useUIStore } from '@/stores/ui'
+import { useTaskStore } from '@/stores/task'
 
 defineOptions({
   name: 'DashboardView',
@@ -23,6 +25,10 @@ useHead({
   ],
 })
 
+const ui = useUIStore();
+const taskStore = useTaskStore()
+
+
 // Khởi tạo newTask là object
 const newTask = ref({
   title: '',
@@ -30,36 +36,16 @@ const newTask = ref({
   user_id: 2, // Giả sử user_id là 1, có thể thay đổi theo logic của bạn
 })
 
-const tasks = ref([])
-const loading = ref(false);
-const error = ref('')
-// Lấy danh sách task khi load trang
-const fetchTasks = async () => {
-  try {
-    const response = await TaskService.getTasks()
-    tasks.value = response.data.data ?? response.data // tuỳ API trả về
-  } catch (error) {
-    console.error('Error fetching tasks:', error)
-  }
-}
+
 
 onMounted(() => {
-  fetchTasks()
+  taskStore.fetchTasks();
 })
 
-// Thêm task mới
-const addTask = async () => {
-  if (!newTask.value.title.trim()) return
-  try {
-    loading.value = true
-    await TaskService.addTask({ title: newTask.value.title, status: 'pending' })
-    newTask.value.title = ''
-    loading.value = false
-    fetchTasks()
-  } catch (error) {
-    console.error('Error adding task:', error)
-  }
-}
+const toggleShowInfo = (id:string) =>{
+ ui.toggleRightSidebar()
+ taskStore.fetchTaskById(id);
+}  
 </script>
 
 <template>
@@ -71,15 +57,15 @@ const addTask = async () => {
     <div class="flex items-center space-x-3">
       <input v-model="newTask.title" placeholder="Thêm tác vụ"
         class="flex-1 border rounded-lg px-4 py-2 outline-none focus:ring-2 ring-blue-400" />
-      <button @click="addTask" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
-       {{ loading ? 'Đang thêm...' : 'Thêm' }}
+      <button @click="taskStore.addTask(newTask)" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+       {{ taskStore.loading ? 'Đang thêm...' : 'Thêm' }}
       </button>
     </div>
   </div>
 
   <!-- Task list -->
-  <div class="space-y-4">
-    <div v-for="(task, index) in tasks" :key="task.id || index"
+  <div class="space-y-4 max-h-screen overflow-scroll">
+    <div v-for="task in taskStore.tasks" :key="task.id"
       class="bg-white rounded-xl shadow flex items-center justify-between px-4 py-3">
       <!-- Left: Avatar + Name -->
       <div class="flex items-center space-x-3">
@@ -87,16 +73,16 @@ const addTask = async () => {
           {{ task?.title.charAt(0).toUpperCase() }}
         </div>
         <div class="text-gray-700 font-medium">
-          {{ task.title }}
+          {{ task?.title }}
         </div>
       </div>
 
       <!-- Right: Status Switch -->
       <div class="flex items-center space-x-4">
         <div class="flex space-x-2 text-xs font-semibold">
-          <span :class="task.status === 'completed' ? 'text-green-600' : 'text-gray-400'">Completed</span>
-          <span>/</span>
-          <span :class="task.status === 'pending' ? 'text-purple-600' : 'text-gray-400'">Unfinished</span>
+          <button @click=" toggleShowInfo(task.id)">
+            <InformationCircleIcon class="w-6 h-6 text-black"  />
+          </button>
         </div>
       </div>
     </div>

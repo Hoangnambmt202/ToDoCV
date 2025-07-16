@@ -11,6 +11,7 @@ export default {
   async login(credentials) {
     await api.get('/sanctum/csrf-cookie'); // Lấy CSRF cookie
     return api.post('/api/login', credentials);
+    
   },
 
   // 3. Lấy thông tin user
