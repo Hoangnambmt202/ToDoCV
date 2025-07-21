@@ -1,4 +1,4 @@
-<script lang="js" setup>
+<script lang="ts" setup>
 import { ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 import { toast } from 'vue3-toastify';
@@ -8,7 +8,7 @@ import AuthService from '@/services/AuthService';
 import { useAuthStore } from '@/stores/auth';
 
 useHead({
-  title: 'Login | ToDoCV',
+  title: 'Đăng nhập | ToDoCV',
   meta: [
     {
       name: 'description',
@@ -33,12 +33,9 @@ const handleLogin = async () => {
     });
   
     authStore.setUser(response.data.data);
-    
-    
     toast.success(response?.data.message + `. Chào mừng ` + response?.data.data.name  , {
       position: 'top-right',
       autoClose: 3000,
-      // Chuyển tới dashboard
       onClose: () => router.push('/dashboard')
     });
   } catch (err) {
@@ -91,11 +88,11 @@ const handleLogin = async () => {
                   <label for="remember" class="text-gray-500 dark:text-gray-300">Ghi nhớ tôi</label>
                 </div>
               </div>
-              <a href="#" class="text-sm font-medium text-primary-600 hover:underline dark:text-primary-500">Bạn quên
+              <a href="#" class="text-sm font-medium text-primary-600 hover:underline dark:text-gray-400">Bạn quên
                 mật khẩu?</a>
             </div>
-            <button type="submit" :disabled="loading"
-              class="w-full text-white bg-blue-500 hover:bg-blue-700 hover:scale-110 cursor-pointer focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
+            <button type="submit" :disabled="loading === true"
+              class="w-full text-white bg-blue-500 hover:bg-blue-700 cursor-pointer focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
               {{ loading ? 'Đang đăng nhập...' : 'Tiếp tục' }}
             </button>
             <p to="/sign-up" class="text-sm font-light text-gray-500 dark:text-gray-400">

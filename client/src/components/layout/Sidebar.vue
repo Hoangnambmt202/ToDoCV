@@ -1,56 +1,35 @@
 <script lang="ts" setup>
 import {
-  Bars3Icon,
-  SunIcon,
-  CalendarDaysIcon,
-  CheckCircleIcon,
+ 
+  ArrowTrendingUpIcon,
   ListBulletIcon,
 } from '@heroicons/vue/24/outline'
 import { computed, ref } from 'vue'
 
-defineOptions({ name: 'AppSidebar' })
+defineOptions({ name: 'Sidebar' })
 
-const user = ref({
-  name: 'Người dùng',
-  email: 'example@gmail.com',
-})
 const menuItems = ref([
   {
-    id: 'today',
-    label: 'Hôm nay',
-    icon: SunIcon,
+    id: 'dashboard',
+    label: 'Bảng điều khiển',
+    icon: ArrowTrendingUpIcon,
     href: '/dashboard',
-    count: 5,
-    color: 'text-yellow-500',
+    count: 0,
+    color: 'text-yellow-600',
   },
-  {
-    id: 'planned',
-    label: 'Đã lập kế hoạch',
-    icon: CalendarDaysIcon,
-    href: '/planned',
-    count: 8,
-    color: 'text-blue-600',
-  },
-  {
-    id: 'completed',
-    label: 'Đã hoàn thành',
-    icon: CheckCircleIcon,
-    href: '/completed',
-    count: 12,
-    color: 'text-green-600',
-  },
+  
   {
     id: 'tasks',
-    label: 'Tác vụ',
+    label: 'Công việc của tôi',
     icon: ListBulletIcon,
     href: '/tasks',
     count: 15,
-    color: 'text-purple-600',
+    color: 'text-blue-600',
   },
 ])
 
 const isOpen = ref(false)
-const activeItem = ref('today')
+const activeItem = ref('dashboard')
 const searchQuery = ref('')
 
 const sidebarClasses = computed(() => {
@@ -69,7 +48,7 @@ const handleItemClick = (itemId: string) => {
 const getMenuItemClasses = (itemId: string) => {
   const isActive = activeItem.value === itemId
   return isActive
-    ? 'bg-gradient-to-r from-blue-50 to-purple-50 border-l-4 border-blue-500 shadow-sm'
+    ? 'bg-white border-l-4 border-blue-500 shadow-sm'
     : 'hover:bg-gray-50 hover:shadow-sm'
 }
 
@@ -107,108 +86,69 @@ const closeSidebar = () => {
 </script>
 
 <template>
-  <button
-    @click="toggleSidebar"
-    class="fixed top-20 left-4 z-50 p-2 rounded-lg bg-white shadow-lg hover:shadow-xl transition-all duration-200"
-  >
-    <Bars3Icon class="w-7 h-7 text-gray-700" />
-  </button>
-
-  <!-- Overlay for mobile -->
-  <div
-    v-if="isOpen"
-    @click="closeSidebar"
-    class="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
-  ></div>
-  <aside
-    :class="sidebarClasses"
-    class="fixed md:relative z-40 h-full bg-white shadow-2xl transition-all duration-300 ease-in-out w-80 flex flex-col"
-  >
-    <!-- Header -->
-    <div class="p-6 border-b border-gray-100">
-      <div class="flex items-center space-x-3 mb-6">
-        <div
-          class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center"
-        >
-          <i data-lucide="list" class="text-white w-5 h-5"></i>
-        </div>
-        <div>
-          <h1 class="text-xl font-bold text-gray-900">TaskFlow</h1>
-          <p class="text-sm text-gray-500">Quản lý công việc</p>
-        </div>
-      </div>
-
-      <!-- Search Bar -->
-      <div class="relative">
-        <i
-          data-lucide="search"
-          class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4"
-        ></i>
+  <aside class="w-64 bg-white p-4 border-r border-gray-200">
+    <nav class="flex flex-col space-y-2">
+      <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Bộ lọc</h3>
+      <div class="relative mb-4">
         <input
-          type="text"
-          placeholder="Tìm kiếm tác vụ..."
           v-model="searchQuery"
-          class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          type="text"
+          placeholder="Tìm kiếm..."
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
-    </div>
-
-    <!-- Menu Items -->
-    <nav class="flex-1 px-4 py-6 space-y-2">
-      <router-link
-        :to="item.href"
-        :key="item.id"
-        @click="handleItemClick(item.id)"
-        v-for="item in menuItems"
-        :class="getMenuItemClasses(item.id)"
-        class="w-full flex items-center justify-between p-3 rounded-xl transition-all duration-200 group"
-      >
-        <div class="flex items-center space-x-3">
-          <component :is="item.icon" :class="['w-8 h-8', getIconClasses(item.id, item.color)]" />
-
-          <span :class="getLabelClasses(item.id)" class="font-medium">
-            {{ item.label }}
-          </span>
-        </div>
+      <ul class="space-y-2">
+        <RouterLink
+          :to="item.href"
+          v-for="item in menuItems"
+          :key="item.id"
+          :class="getMenuItemClasses(item.id)"
+          @click="handleItemClick(item.id)"
+          class="group flex items-center bg-gray-50 p-2 rounded-md cursor-pointer transition-colors duration-200"
+        > 
+        
+         
+        <component
+          :is="item.icon"
+          :class="getIconClasses(item.id, item.color)"
+          class="h-6 w-6 mr-3"
+        />
+        <span :class="getLabelClasses(item.id)" class="flex-1">
+          {{ item.label }}
+        </span>
         <span
+          v-if="item.count > 0"
           :class="getCountClasses(item.id)"
-          class="px-2 py-1 text-xs font-semibold rounded-full"
+          class="inline-flex items-center justify-center w-6 h-6 text-xs font-medium rounded-full"
         >
           {{ item.count }}
         </span>
-      </router-link>
+
+        
+        </RouterLink>
+        <li class="mt-4">
+          <button
+            @click="addNewTask"
+            class="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <Bars3Icon class="h-5 w-5 mr-2" />
+            Thêm tác vụ mới
+          </button>
+        </li>
+        <li>
+          <button
+            @click="openSettings"
+            class="w-full flex items-center justify-center px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300"
+          >
+            <Bars3Icon class="h-5 w-5 mr-2" />
+            Cài đặt
+          </button>
+        </li>
+      </ul>
     </nav>
-
-    <!-- Add Task Button -->
-    <div class="p-4 border-t border-gray-100">
-      <button
-        @click="addNewTask"
-        class="w-full flex items-center justify-center space-x-2 py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-      >
-        <i data-lucide="plus" class="w-5 h-5"></i>
-        <span class="font-medium">Thêm tác vụ mới</span>
-      </button>
-    </div>
-
-    <!-- User Profile -->
-    <div class="p-4 border-t border-gray-100">
-      <div class="flex items-center space-x-3 mb-3">
-        <div
-          class="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center"
-        >
-          <i data-lucide="user" class="text-white w-4 h-4"></i>
-        </div>
-        <div class="flex-1">
-          <p class="text-sm font-medium text-gray-900">{{ user.name }}</p>
-          <p class="text-xs text-gray-500">{{ user.email }}</p>
-        </div>
-        <button @click="openSettings" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-          <i data-lucide="settings" class="text-gray-400 w-4 h-4"></i>
-        </button>
-      </div>
-    </div>
   </aside>
 </template>
+
 <style scoped>
 /* Hide sidebar on mobile by default, show on md+ */
 @media (min-width: 768px) {

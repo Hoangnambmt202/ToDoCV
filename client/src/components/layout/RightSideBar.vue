@@ -2,146 +2,128 @@
 import { ref, watch } from 'vue';
 import { useUIStore } from '@/stores/ui'
 import { useTaskStore } from '@/stores/task';
-import { ArrowPathRoundedSquareIcon, ArrowRightEndOnRectangleIcon, BellIcon, CalendarDaysIcon, PaperClipIcon, TagIcon, TrashIcon } from '@heroicons/vue/24/outline';
+import { ArrowPathRoundedSquareIcon, ArrowRightEndOnRectangleIcon, BellIcon, CalendarDaysIcon, PaperClipIcon, PlusIcon, TagIcon, TrashIcon } from '@heroicons/vue/24/outline';
+import { watchEffect } from 'vue'
+import TaskService from '@/services/TaskService';
+import { Tippy } from 'vue-tippy';
+
+
 
 const ui = useUIStore()
 const taskStore = useTaskStore()
 const showDeleteModal = ref(false)
 
-
-const editableTask = ref({
+// Local state để binding với input
+const localTask = ref({
   title: '',
-  status: 'pending',
+  status: 'pending'
 })
+
+// Watch selectedTask and bind it to the local state (if needed)
+watchEffect(() => {
+  if (taskStore.selectedTask) {
+    localTask.value = {
+      title: taskStore.selectedTask.title,
+      status: taskStore.selectedTask.status
+    }
+  }
+})
+
+const saveChanges = async () => {
+  if (taskStore.selectedTask) {
+    await TaskService.updateTask(taskStore.selectedTask.id, localTask.value)
+  }
+}
+const handleDelTask =  async() => {
+  // showDeleteModal = true;
+  const response = await TaskService.deleteTask(taskStore?.selectedTask?.id)
+  taskStore.removeTaskFromStore(taskStore?.selectedTask?.id)
+  console.log(response);
+}
 const toggleCollapse = () => {
   ui.toggleRightSidebar()
-
 }
 
-// Khi selectedTask thay đổi, cập nhật editableTask
-watch(
-  () => taskStore.selectedTask,
-  (newTask) => {
-    if (newTask) {
-      editableTask.value = {
-        title: newTask.title,
-        status: newTask.status,
-      }
-    }
-  },
-  { immediate: true }
-)
-const handleDelete = async () => {
 
-}
-const saveChanges = async () => {
-  if (!taskStore.selectedTask) return
-
-  const hasChanged =
-    editableTask.value.title !== taskStore.selectedTask.title ||
-    editableTask.value.status !== taskStore.selectedTask.status
-
-  if (!hasChanged) return // không cần lưu nếu không thay đổi
-
-  await taskStore.updateTask(taskStore.selectedTask.id, editableTask.value)
-}
 
 </script>
 
-
-
 <template>
-  <div class="transition-all duration-300 ease-in-out flex max-h-full flex-col border border-gray-500 bg-white "
+  <div class="transition-all duration-300 ease-in-out fixed top-0 right-0 h-full drop-shadow-xl/25 !z-100 overflow-y-auto flex max-h-full flex-col border border-gray-500 bg-white "
     :class="ui.showRightSidebar ? 'w-96' : 'w-0 '">
-
-
     <div v-if="ui.showRightSidebar" class="p-4 ">
       <!-- Update task input -->
-      <div class="bg-white shadow-lg p-4 sticky z-50 top-0 left-0 right-0 ">
+       <div class="bg-white shadow-lg p-4 sticky z-50 top-0 left-0 right-0">
         <div v-if="taskStore.selectedTask" class="flex items-center flex-col space-y-2">
           <div class="flex items-center gap-2 w-full">
-            <label
-              class="relative top-0 left-8 text-[#008080] flex cursor-pointer items-center justify-center gap-[1em]"
-              for="tick">
-              <input class="peer appearance-none" id="tick" name="tick" type="checkbox" />
-              <span
-                class="absolute left-0 top-1/2 h-[2em] w-[2em] -translate-x-full -translate-y-1/2 rounded-[0.25em] border-[2px] border-[#008080]">
-              </span>
-              <svg viewBox="0 0 69 89"
-                class="absolute left-0 top-1/2 h-[2em] w-[2em] -translate-x-full -translate-y-1/2 duration-500 ease-out [stroke-dasharray:100] [stroke-dashoffset:100] peer-checked:[stroke-dashoffset:0]"
-                fill="none" height="89" width="69" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M.93 63.984c3.436.556 7.168.347 10.147 2.45 4.521 3.19 10.198 8.458 13.647 12.596 1.374 1.65 4.181 5.922 5.598 8.048.267.4-1.31.823-1.4.35-5.744-30.636 9.258-59.906 29.743-81.18C62.29 2.486 63.104 1 68.113 1"
-                  stroke-width="6px" stroke="#008080" pathLength="100"></path>
-              </svg>
+            <input type="checkbox" name="check" id="check" class="w-6 h-6 ">
+            <input v-model="taskStore.selectedTask.title" class="w-full p-2 border-b border-b-gray-500 focus:outline-none"
+               @change="saveChanges" />
+          </div>
+          <div class="flex items-center gap-2 w-full">
+            <label for="addStep" name="addStep">
+              <PlusIcon class="w-6 h-6 text-black"/>
 
             </label>
-            <input v-model="editableTask.title" class="w-full ml-8 p-2 border-b border-b-gray-500 focus:outline-none"
-              placeholder="Tiêu đề công việc" @blur="saveChanges" />
-          </div>
-          <div class="flex gap-2 w-full">
-            <button title="Add New" class="group cursor-pointer outline-none hover:rotate-90 duration-300">
-              <svg xmlns="http://www.w3.org/2000/svg" width="30px" height="30px" viewBox="0 0 24 24"
-                class="stroke-zinc-400 fill-none group-hover:fill-zinc-800 group-active:stroke-zinc-200 group-active:fill-zinc-600 group-active:duration-0 duration-300">
-                <path d="M12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22Z"
-                  stroke-width="1.5"></path>
-                <path d="M8 12H16" stroke-width="1.5"></path>
-                <path d="M12 16V8" stroke-width="1.5"></path>
-              </svg>
-            </button>
-
             <input type="text" name="addStep" id="addStep" placeholder="Thêm bước"
               class="w-full flex-1 border-b border-b-gray-500 px-3 py-2 mt-1 focus:outline-none">
           </div>
-
         </div>
       </div>
-      <div class="overflow-y-scroll max-h-78">
+      <div class="overflow-y-scroll overflow-hidden bg-white max-h-78">
 
-        <div class="bg-white w-full shadow p-4 ">
+        <div class="bg-white w-full shadow py-4 hover:bg-gray-100  ">
           <div class="flex gap-2 ">
             <BellIcon class="w-6 h-6 text-black" />
             <span>Nhắc tôi</span>
           </div>
         </div>
 
-        <div class="bg-white w-full shadow p-4 ">
+        <div class="bg-white w-full shadow py-4 hover:bg-gray-100  ">
           <div class="flex gap-2 ">
             <CalendarDaysIcon class="w-6 h-6 text-black" />
             <span>Thêm hạn chót</span>
           </div>
         </div>
-        <div class="bg-white w-full shadow p-4 ">
+        <div class="bg-white w-full shadow py-4 hover:bg-gray-100  ">
           <div class="flex gap-2 ">
             <ArrowPathRoundedSquareIcon class="w-6 h-6 text-black" />
             <span>Lặp lại</span>
           </div>
         </div>
-        <div class="bg-white w-full shadow p-4 ">
+        <div class="bg-white w-full shadow py-4 hover:bg-gray-100  ">
           <div class="flex gap-2 ">
             <TagIcon class="w-6 h-6 text-black" />
             <span>Thêm danh mục</span>
           </div>
         </div>
 
-        <div class="bg-white w-full shadow p-4 ">
+        <div class="bg-white w-full shadow py-4 hover:bg-gray-100  ">
           <div class="flex gap-2 ">
-            <PaperClipIcon class="w-6 h-6 text-black" />
-            <span>Thêm File</span>
+            <span><PaperClipIcon class="w-6 h-6 text-black" /></span>
+            <input type="file" placeholder="Thêm file" class=" flex-1 text-base text-gray-400 outline-none"/>
           </div>
         </div>
-        <div class="bg-white w-full shadow">
-          <textarea name="note" id="note" placeholder="Ghi chú ..." class="w-full h-full outline-none p-4">
+        <div class="bg-white border border-gray-400 w-full shadow">
+          <textarea name="note" id="note" placeholder="Ghi chú ..." class="w-full h-full outline-none p-2 text-black">
             </textarea>
         </div>
       </div>
     </div>
 
     <div class="border-t-2 p-4 flex w-full relative justify-between border-gray-500">
-      <ArrowRightEndOnRectangleIcon class="w-6 h-6 text-black hover:text-blue-500 cursor-pointer"
-        @click="toggleCollapse" />
-      <TrashIcon id="deleteButton"  @click="showDeleteModal = true"
-        class="w-6 h-6 text-black hover:text-red-500 cursor-pointer" />
+      <Tippy content="Thu gọn" placement="left">
+        <button @click="toggleCollapse" class="flex items-center justify-center">
+          <ArrowRightEndOnRectangleIcon class="w-6 h-6 text-black hover:text-blue-500 cursor-pointer"
+            />
+        </button>
+      </Tippy>
+      <Tippy content="Xóa công việc" placement="left">
+        <button  @click="handleDelTask" class="flex items-center justify-center"> 
+          <TrashIcon id="deleteButton" 
+          class="w-6 h-6 text-black hover:text-red-500 cursor-pointer" />
+        </button>
+      </Tippy>
       <div id="deleteModal" v-if="showDeleteModal" tabindex="-1" aria-hidden="true"
         class=" overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-modal md:h-full">
         <div class="relative top-1/2 left-1/3 p-4 w-full opacity-100 max-w-md h-full md:h-auto">

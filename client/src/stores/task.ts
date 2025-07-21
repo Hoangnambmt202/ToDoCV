@@ -1,78 +1,62 @@
-// stores/task.ts
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
 import TaskService from '@/services/TaskService'
+import type { Task, CreateTaskDto, UpdateTaskDto } from '@/types/task'
 
-
-export const useTaskStore = defineStore('task', () => {
-  const tasks = ref<any[]>([])
-  const selectedTask = ref<any | null>(null)
-  const loading = ref(false)
-  const error = ref<string | null>(null)
-
-  const fetchTasks = async () => {
-    loading.value = true
-    try {
-      const response = await TaskService.getTasks()
-      return tasks.value = response.data.data ?? response.data
-    } catch (err: any) {
-      error.value = 'Lỗi khi tải danh sách công việc'
-      console.error(err)
-    } finally {
-      loading.value = false
-    }
-  }
-
-  const fetchTaskById = async (id: string | number) => {
-    loading.value = true
-    try {
-      const response = await TaskService.showTask(id)
-      return selectedTask.value = response.data.data
-    } catch (err: any) {
-      error.value = 'Không thể lấy chi tiết task'
-      console.error(err)
-    } finally {
-      loading.value = false
-    }
-  }
-
-  const addTask = async (newTask: { title: string; status: string; user_id: number }) => {
-    loading.value = true
-    try {
-      await TaskService.addTask(newTask)
-      await fetchTasks()
-     
-    
-    } catch (err: any) {
-      error.value = 'Không thể thêm task'
-      console.error(err)
-    } finally {
-      loading.value = false
-    }
-  }
-  const updateTask = async (id: number | string, updatedData: { title: string; status: string }) => {
-  loading.value = true
-  try {
-    await TaskService.updateTask(id, updatedData)
-    await fetchTasks() // cập nhật danh sách sau khi sửa
-    selectedTask.value = { ...selectedTask.value, ...updatedData } // cập nhật local selectedTask
-  } catch (err: any) {
-    error.value = 'Không thể cập nhật task'
-    console.error(err)
-  } finally {
-    loading.value = false
-  }
+interface TaskState {
+  tasks: Task[]
+  selectedTask: Task | null
+  loading: boolean
+  error: string | null
 }
 
+export const useTaskStore = defineStore('task', {
+  state: (): TaskState => ({
+    tasks: [],
+    selectedTask: null,
+    loading: false,
+    error: null
+  }),
 
-  return {
-    tasks,
-    selectedTask,
-    loading,
-    error,
-    fetchTasks,
-    fetchTaskById,
-    addTask,
-    updateTask,
+  actions: {
+    setTasks(tasks: Task[]) {
+      this.tasks = tasks
+    },
+
+    addTaskToStore(task: Task) {
+
+      this.tasks.push(task)
+    },
+
+    updateTask(updatedTask: Task) {
+      const index = this.tasks.findIndex(task => task.id === updatedTask.id);
+      if (index !== -1) {
+        this.tasks[index] = updatedTask;
+      }
+    },
+
+    removeTaskFromStore(taskId: string) {
+      this.tasks = this.tasks.filter(task => task.id !== taskId)
+      if (this.selectedTask?.id === taskId) {
+        this.selectedTask = null
+      }
+    },
+
+    setSelectedTask(task: Task| null) {
+      this.selectedTask = task
+    },
+
+    setLoading(loading: boolean) {
+      this.loading = loading
+    },
+
+    setError(error: string | null) {
+      this.error = error
+    },
+  },
+  persist: true,
+  getters: {
+    pendingTasks: (state) => state.tasks.filter(task => task.status === 'pending'),
+    completedTasks: (state) => state.tasks.filter(task => task.status === 'completed'),
+    getTaskById: (state) => (id: string) => state.tasks.find(task => task.id === id)
   }
 })
