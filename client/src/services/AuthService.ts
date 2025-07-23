@@ -25,4 +25,9 @@ export default {
     await api.get('/sanctum/csrf-cookie');
     return api.post('/api/logout');
   }
+  // 5. Cập nhật thông tin user
+  , async updateUser(userData: { name: string; email: string; avatar: string }) {
+    await api.get('/sanctum/csrf-cookie');
+    return api.put('/api/update', userData);
+  }
 };

@@ -1,15 +1,18 @@
 <script lang="ts" setup>
 import {
- 
   ArrowTrendingUpIcon,
   ListBulletIcon,
+  Bars3Icon,
 } from '@heroicons/vue/24/outline'
 import { computed, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useSearchStore } from '@/stores/search'
 import SearchService from '@/services/SearchService'
 import { storeToRefs } from 'pinia'
 
 defineOptions({ name: 'Sidebar' })
+
+const route = useRoute()
 
 const searchStore = useSearchStore()
 const { searchQuery, searchResults, isSearching, hasResults } = storeToRefs(searchStore)
@@ -23,7 +26,6 @@ const menuItems = ref([
     count: 0,
     color: 'text-yellow-600',
   },
-  
   {
     id: 'tasks',
     label: 'Công việc của tôi',
@@ -34,13 +36,16 @@ const menuItems = ref([
   },
 ])
 
-const isOpen = ref(false)
-const activeItem = ref('dashboard')
+// Active item dựa theo URL
+const activeItem = computed(() => {
+  const path = route.path
+  const match = menuItems.value.find(item => path.startsWith(item.href))
+  return match?.id ?? ''
+})
+
 const filteredMenuItems = ref([...menuItems.value])
 
-const sidebarClasses = computed(() => {
-  return isOpen.value ? 'translate-x-0 !w-80' : '-translate-x-full md:translate-x-0 hidden' 
-})
+// Xử lý tìm kiếm
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
 const handleSearch = async (query: string) => {
@@ -48,7 +53,7 @@ const handleSearch = async (query: string) => {
     searchStore.clearSearch()
     return
   }
-  
+
   try {
     searchStore.setSearching(true)
     const response = await SearchService.searchTasks(query)
@@ -67,12 +72,7 @@ watch(searchQuery, (newQuery) => {
   }, 300)
 })
 
-const handleItemClick = (itemId: string) => {
-  if (window.innerWidth < 768) isOpen.value = false
-  activeItem.value = itemId
-}
-
-
+// Class utils
 const getMenuItemClasses = (itemId: string) => {
   const isActive = activeItem.value === itemId
   return isActive
@@ -97,6 +97,7 @@ const getCountClasses = (itemId: string) => {
     : 'bg-gray-100 text-gray-600 group-hover:bg-gray-200'
 }
 
+// Dummy buttons
 const addNewTask = () => {
   alert('Thêm tác vụ mới - Tính năng sẽ được phát triển')
 }
@@ -104,14 +105,8 @@ const addNewTask = () => {
 const openSettings = () => {
   alert('Mở cài đặt - Tính năng sẽ được phát triển')
 }
-const toggleSidebar = () => {
-  isOpen.value = !isOpen.value
-}
-
-const closeSidebar = () => {
-  isOpen.value = false
-}
 </script>
+
 
 <template>
   <aside class="w-64 bg-white p-4 border-r border-gray-200">
@@ -177,7 +172,6 @@ const closeSidebar = () => {
           v-for="item in menuItems"
           :key="item.id"
           :class="getMenuItemClasses(item.id)"
-          @click="handleItemClick(item.id)"
           class="group flex items-center bg-gray-50 p-2 rounded-md cursor-pointer transition-colors duration-200"
         > 
         

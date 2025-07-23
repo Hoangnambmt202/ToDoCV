@@ -18,10 +18,10 @@ useHead({
 });
 const email = ref('');
 const password = ref('');
-const loading = ref(false);
 const error = ref('');
 const router = useRouter();
 const authStore = useAuthStore();
+const loading = authStore.loading;
 
 const handleLogin = async () => {
   loading.value = true;
@@ -91,7 +91,7 @@ const handleLogin = async () => {
               <a href="#" class="text-sm font-medium text-primary-600 hover:underline dark:text-gray-400">Bạn quên
                 mật khẩu?</a>
             </div>
-            <button type="submit" :disabled="loading === true"
+            <button type="submit" :disabled="loading"
               class="w-full text-white bg-blue-500 hover:bg-blue-700 cursor-pointer focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
               {{ loading ? 'Đang đăng nhập...' : 'Tiếp tục' }}
             </button>

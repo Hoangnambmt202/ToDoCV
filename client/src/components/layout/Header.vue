@@ -52,13 +52,11 @@ const logout = async () => {
        
           </template>
           <template #content >
-            <div class="flex flex-col w-40 rounded text-sm gap-2">
+            <div class="flex flex-col w-40 rounded text-sm gap-1">
               <RouterLink to="/profile" class="p-2 hover:bg-gray-100 rounded"  @click="tippyRef?.hide()">
                 Hồ sơ
               </RouterLink>
-              <button @click="user" >
-                Lấy user
-              </button>
+            
               <button @click="logout" class="p-2 hover:bg-gray-100 rounded text-left">
                 Đăng xuất
               </button>

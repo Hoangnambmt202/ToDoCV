@@ -9,8 +9,9 @@ Route::post('/sign-up', [AuthController::class, 'signUp']);
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class,'user']);
+    Route::put('/update', [AuthController::class, 'update']);
+    Route::post('/logout', [AuthController::class, 'logout']);
 });
 
 Route::middleware('auth:sanctum')->prefix('tasks')->group(function () {

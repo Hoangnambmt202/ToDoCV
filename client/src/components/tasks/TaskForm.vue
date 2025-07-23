@@ -18,14 +18,7 @@
               <label for="due_date" class="block text-sm font-medium text-gray-700 text-left">Hạn hoàn thành</label>
               <input type="date" id="due_date" v-model="form.due_date" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
             </div>
-            <div class="mb-4">
-              <label for="status" class="block text-sm font-medium text-gray-700 text-left">Trạng thái</label>
-              <select id="status" v-model="form.status" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                <option value="to-do">Việc cần làm</option>
-                <option value="doing">Đang làm</option>
-                <option value="completed">Hoàn thành</option>
-              </select>
-            </div>
+            
           </form>
         </div>
         <div class="items-center px-4 py-3">
@@ -50,27 +43,39 @@ import TaskService from '@/services/TaskService';
 const isModalVisible = ref(false);
 const props = defineProps<{
   visible: boolean;
-  task: Task | null;
+  
 }>();
-
 const emit = defineEmits(['close', 'success']);
 
-const form = ref<Partial<Task>>({});
 
-const formTitle = computed(() => (props.task ? 'Chỉnh sửa công việc' : 'Tạo công việc mới'));
+const form = ref<Partial<Task>>({ title: '',
+  description: '',
+  due_date: '',
+  status: 'to-do', 
+   });
+const formTitle = computed(() => ('Tạo công việc mới'));
 
-watch(() => props.task, (newTask) => {
-  form.value = { ...newTask };
-}, { immediate: true });
+// Reset form mỗi khi visible = true
+watch(() => props.visible, (visible) => {
+  if (visible) {
+    form.value = {
+      title: '',
+      description: '',
+      due_date: '',
+      status: 'to-do'
+    };
+  }
+});
 
 const close = () => {
   emit('close');
 };
 const submitForm = async () => {
   try {
-    const createdTask = await TaskService.addTask(form.value );
+    const response = await TaskService.addTask(form.value );
     emit('success');
-    toast.success(createdTask.message);
+    form.value = {};
+    toast.success(response.message);
       emit('close');
   } catch (error) {
     console.error('Lỗi khi tạo task:', error);

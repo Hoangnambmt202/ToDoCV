@@ -3,16 +3,16 @@ export interface Task {
   title: string;
   description: string;
   due_date: string;
-  status: 'To Do' | 'In Progress' | 'Completed';
+  status: 'to-do' | 'doing' | 'completed';
 }
 
 export interface CreateTaskDto {
   title: string;
-  status: 'pending' | 'completed';
+  status: 'to-do' |'doing' |'completed';
   user_id: number;
 }
 
 export interface UpdateTaskDto {
   title?: string;
-  status?: 'pending' | 'completed';
+  status?: 'to-do' |'doing' |'completed';
 }

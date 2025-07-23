@@ -13,9 +13,9 @@
     <div class="p-4 min-h-[300px]">
       <div
         v-if="paginatedTasks.length > 0"
-        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+        class="space-y-2"
       >
-        <TaskCard
+        <TaskItem
           v-for="task in paginatedTasks"
           :key="task.id"
           :task="task"
@@ -73,7 +73,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import TaskFilter from '@/components/tasks/TaskFilter.vue';
-import TaskCard from '@/components/tasks/TaskCard.vue';
 import Pagination from '@/components/layout/Pagination.vue';
 import type { Task } from '@/types/task';
 import HeadSection from '@/components/sections/HeadSection.vue';
@@ -83,6 +82,7 @@ import TaskForm from '@/components/tasks/TaskForm.vue';
 import AddTaskButton from '@/components/tasks/AddTaskButton.vue';
 import TaskService from '@/services/TaskService';
 import { useTaskStore } from '@/stores/task';
+import TaskItem from '@/components/tasks/TaskItem.vue';
 
 defineEmits(['edit', 'delete']);
 
@@ -112,7 +112,6 @@ const loadTasks = async () => {
     taskStore.setLoading(true);
     const tasks = await TaskService.getTasks();
     taskStore.setTasks(tasks.data);
-  
   } catch (err) {
     taskStore.setError('Lỗi tải danh sách công việc');
   } finally {
@@ -122,7 +121,6 @@ const loadTasks = async () => {
 
 
 const filteredTasks = computed(() => {
-  console.log(allTasks.value);
   return allTasks.value.filter(task => {
     if (filters.value.status && task.status !== filters.value.status) {
       return false;
@@ -158,7 +156,7 @@ const handleLoadTasks = async () => {
     taskStore.setError('Lỗi tải lại danh sách công việc');
   } finally {
     taskStore.setLoading(false);
-    closeTaskModal(); // ✅ Đóng modal sau khi xong
+    closeTaskModal();  
   }
 };
 

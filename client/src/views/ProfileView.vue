@@ -87,7 +87,10 @@ const authStore = useAuthStore();
 const isEditing = ref(false)
 const originalProfile = ref({ name: '', email: '' })
 
-onMounted(() => {
+onMounted( async () => {
+    //lấy thông tin user từ api 
+    const response = await AuthService.getUser();
+    authStore.setUser(response.data);
     if (authStore.user) {
         profileForm.value.name = authStore.user.name;
         profileForm.value.email = authStore.user.email;
@@ -114,7 +117,6 @@ const cancelEdit = () => {
 
 const profileForm = ref({
     name: '',
-    email: ''
 });
 
 const passwordForm = ref({
@@ -127,15 +129,19 @@ const passwordForm = ref({
 onMounted(() => {
     if (authStore.user) {
         profileForm.value.name = authStore.user.name;
-        profileForm.value.email = authStore.user.email;
     }
 });
 
 const updateProfile = async () => {
     try {
-        if (profileForm)
-            // Logic gọi API cập nhật profile
-            toast.success('Cập nhật thông tin thành công! thông tin mới là :' + profileForm.value.name);
+        if (profileForm)  {
+            await AuthService.updateUser(profileForm.value);
+            toast.success('Cập nhật thông tin thành công!');
+            const response = await AuthService.getUser();
+            authStore.setUser(response.data);
+   
+        }
+            
     } catch (error) {
         toast.error('Có lỗi xảy ra, vui lòng thử lại.');
     }

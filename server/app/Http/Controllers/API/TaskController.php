@@ -26,14 +26,14 @@ class TaskController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $validated = $request->validate( [
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'status' => 'required|in:to-do, doing ,completed',
+            'status' => 'required|in:to-do,doing,completed',
             'due_date' => 'nullable|date',
         ]);
         $task = $request->user()->tasks()->create($validated);
-
+       
         return response()->json([
             'message' => 'Công việc đã được tạo thành công',
             'data' => $task,

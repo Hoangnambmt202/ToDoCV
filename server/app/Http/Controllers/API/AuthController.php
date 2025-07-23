@@ -61,6 +61,30 @@ class AuthController extends Controller
         return response()->json($request->user());
     }
 
+    public function update(Request $request)
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'avatar' => 'nullable|image|max:2048',
+        ]);
+
+        if ($request->hasFile('avatar')) {
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $validated['avatar'] = $avatarPath;
+        }
+
+        $user->update($validated);
+
+        return response()->json([
+            'message' => 'Thông tin người dùng đã được cập nhật',
+            'user' => $user,
+        ]);
+    }
+
+
     public function logout(Request $request)
     {
          Auth::guard('web')->logout();
