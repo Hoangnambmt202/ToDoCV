@@ -29,7 +29,7 @@ class TaskController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'status' => 'required|in:pending,completed',
+            'status' => 'required|in:to-do, doing ,completed',
             'due_date' => 'nullable|date',
         ]);
         $task = $request->user()->tasks()->create($validated);

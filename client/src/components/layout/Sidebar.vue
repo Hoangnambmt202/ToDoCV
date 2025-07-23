@@ -4,9 +4,15 @@ import {
   ArrowTrendingUpIcon,
   ListBulletIcon,
 } from '@heroicons/vue/24/outline'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { useSearchStore } from '@/stores/search'
+import SearchService from '@/services/SearchService'
+import { storeToRefs } from 'pinia'
 
 defineOptions({ name: 'Sidebar' })
+
+const searchStore = useSearchStore()
+const { searchQuery, searchResults, isSearching, hasResults } = storeToRefs(searchStore)
 
 const menuItems = ref([
   {
@@ -30,20 +36,42 @@ const menuItems = ref([
 
 const isOpen = ref(false)
 const activeItem = ref('dashboard')
-const searchQuery = ref('')
+const filteredMenuItems = ref([...menuItems.value])
 
 const sidebarClasses = computed(() => {
   return isOpen.value ? 'translate-x-0 !w-80' : '-translate-x-full md:translate-x-0 hidden' 
 })
+let debounceTimer: ReturnType<typeof setTimeout> | null = null
+
+const handleSearch = async (query: string) => {
+  if (!query.trim()) {
+    searchStore.clearSearch()
+    return
+  }
+  
+  try {
+    searchStore.setSearching(true)
+    const response = await SearchService.searchTasks(query)
+    searchStore.setSearchResults(response.data.data)
+  } catch (error) {
+    console.error('Search error:', error)
+  } finally {
+    searchStore.setSearching(false)
+  }
+}
+
+watch(searchQuery, (newQuery) => {
+  if (debounceTimer) clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(() => {
+    handleSearch(newQuery)
+  }, 300)
+})
 
 const handleItemClick = (itemId: string) => {
-  // Close sidebar on mobile after selecting
-  if (window.innerWidth < 768) {
-    isOpen.value = false
-  }
-
+  if (window.innerWidth < 768) isOpen.value = false
   activeItem.value = itemId
 }
+
 
 const getMenuItemClasses = (itemId: string) => {
   const isActive = activeItem.value === itemId
@@ -96,6 +124,52 @@ const closeSidebar = () => {
           placeholder="Tìm kiếm..."
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+        <!-- Search Results Dropdown -->
+        <div v-if="searchQuery" class="absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-[400px] overflow-y-auto z-50">
+          <!-- Loading State -->
+          <div v-if="isSearching" class="p-4 text-center text-gray-500">
+            <span class="inline-block animate-spin mr-2">⌛</span>
+            Đang tìm kiếm...
+          </div>
+
+          <!-- No Results -->
+          <div v-else-if="!hasResults && searchQuery" class="p-4 text-center text-gray-500">
+            Không tìm thấy kết quả cho "{{ searchQuery }}"
+          </div>
+
+          <!-- Results List -->
+          <ul v-else-if="hasResults">
+            <li v-for="result in searchResults" 
+                :key="result.id"
+                class="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0">
+              <div class="flex items-center space-x-3">
+                <!-- Status Indicator -->
+                <div :class="[
+                  'w-2 h-2 rounded-full',
+                  result.completed ? 'bg-green-400' : 'bg-yellow-400'
+                ]"></div>
+                
+                <!-- Task Info -->
+                <div class="flex-1">
+                  <div class="font-medium text-gray-900">{{ result.name }}</div>
+                  <div class="text-sm text-gray-500">
+                    {{ result.completed ? 'Hoàn thành' : 'Đang thực hiện' }}
+                  </div>
+                </div>
+
+                <!-- Priority Badge -->
+                <div v-if="result.priority" :class="[
+                  'px-2 py-1 text-xs rounded-full',
+                  result.priority === 'high' ? 'bg-red-100 text-red-800' :
+                  result.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-green-100 text-green-800'
+                ]">
+                  {{ result.priority }}
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
       </div>
       <ul class="space-y-2">
         <RouterLink

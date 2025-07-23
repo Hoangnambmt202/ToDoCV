@@ -14,4 +14,13 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  server: {
+    watch: {
+      usePolling: true,      // 👈 Bắt buộc nếu dùng WSL hoặc Docker
+      interval: 100,         // 👈 Kiểm tra mỗi 100ms (có thể chỉnh)
+    },
+    port: 5173,
+    strictPort: true,
+    open: true              // 👈 Tự mở trình duyệt khi chạy dev server
+  }
 })

@@ -15,12 +15,14 @@ export default {
   },
 
   // 3. Lấy thông tin user
-  getUser() {
+  async getUser() {
+    await api.get('/sanctum/csrf-cookie');
     return api.get('/api/user');
   },
 
   // 4. Đăng xuất
-  logout() {
+  async logout() {
+    await api.get('/sanctum/csrf-cookie');
     return api.post('/api/logout');
   }
 };
