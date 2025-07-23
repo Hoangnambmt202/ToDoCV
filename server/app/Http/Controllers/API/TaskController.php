@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Task;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
@@ -25,20 +26,28 @@ class TaskController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-    {
-        $validated = $request->validate( [
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'status' => 'required|in:to-do,doing,completed',
-            'due_date' => 'nullable|date',
-        ]);
-        $task = $request->user()->tasks()->create($validated);
-       
-        return response()->json([
-            'message' => 'Công việc đã được tạo thành công',
-            'data' => $task,
-        ], 200);
-    }
+{
+    $validated = $request->validate([
+        'title' => 'required|string|max:255',
+        'description' => 'nullable|string',
+        'status' => 'required|in:to-do,doing,completed',
+        'due_date' => 'nullable|date',
+    ]);
+
+    // Chuyển đổi due_date thành định dạng MySQL hợp lệ
+    $validated['due_date'] = $validated['due_date']
+        ? Carbon::parse($validated['due_date'])->format('Y-m-d')
+        : null;
+
+    // Tạo task
+    $task = $request->user()->tasks()->create($validated);
+
+    return response()->json([
+        'message' => 'Công việc đã được tạo thành công',
+        'data' => $task,
+    ], 200);
+}
+
 
     /**
      * Display the specified resource.

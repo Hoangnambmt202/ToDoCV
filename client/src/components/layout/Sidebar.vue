@@ -4,26 +4,27 @@ import {
   ListBulletIcon,
   Bars3Icon,
 } from '@heroicons/vue/24/outline'
-import { computed, ref, watch } from 'vue'
+import { computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSearchStore } from '@/stores/search'
 import SearchService from '@/services/SearchService'
 import { storeToRefs } from 'pinia'
+import { useTaskStore } from '@/stores/task'
 
 defineOptions({ name: 'Sidebar' })
 
-const route = useRoute()
-
-const searchStore = useSearchStore()
+const route = useRoute();
+const taskStore = useTaskStore();
+const searchStore = useSearchStore();
 const { searchQuery, searchResults, isSearching, hasResults } = storeToRefs(searchStore)
 
-const menuItems = ref([
+const menuItems = computed(()=>[
   {
     id: 'dashboard',
     label: 'Bảng điều khiển',
     icon: ArrowTrendingUpIcon,
     href: '/dashboard',
-    count: 0,
+    
     color: 'text-yellow-600',
   },
   {
@@ -31,7 +32,7 @@ const menuItems = ref([
     label: 'Công việc của tôi',
     icon: ListBulletIcon,
     href: '/tasks',
-    count: 15,
+    count: taskStore.tasks.filter(t => t.status !== 'completed').length,
     color: 'text-blue-600',
   },
 ])
@@ -42,8 +43,6 @@ const activeItem = computed(() => {
   const match = menuItems.value.find(item => path.startsWith(item.href))
   return match?.id ?? ''
 })
-
-const filteredMenuItems = ref([...menuItems.value])
 
 // Xử lý tìm kiếm
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
@@ -174,8 +173,7 @@ const openSettings = () => {
           :class="getMenuItemClasses(item.id)"
           class="group flex items-center bg-gray-50 p-2 rounded-md cursor-pointer transition-colors duration-200"
         > 
-        
-         
+       
         <component
           :is="item.icon"
           :class="getIconClasses(item.id, item.color)"
@@ -185,7 +183,7 @@ const openSettings = () => {
           {{ item.label }}
         </span>
         <span
-          v-if="item.count > 0"
+          v-if="item.count"
           :class="getCountClasses(item.id)"
           class="inline-flex items-center justify-center w-6 h-6 text-xs font-medium rounded-full"
         >

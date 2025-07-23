@@ -150,7 +150,7 @@ const closeTaskModal = () => {
 const handleLoadTasks = async () => {
   try {
     taskStore.setLoading(true);
-    const response = await TaskService.getTasks(); // ✅ phải await
+    const response = await TaskService.getTasks(); 
     taskStore.setTasks(response.data);
   } catch (error) {
     taskStore.setError('Lỗi tải lại danh sách công việc');
@@ -160,6 +160,14 @@ const handleLoadTasks = async () => {
   }
 };
 
+const handleDelTask = async (taskId: string) => {
+  try {
+    await TaskService.deleteTask(taskId);
+    taskStore.removeTaskFromStore(taskId);
+  } catch (error) {
+    taskStore.setError('Lỗi xóa công việc');
+  }
+};
 
 const applyFilter = (newFilters: { status: string }) => {
   currentPage.value = 1;

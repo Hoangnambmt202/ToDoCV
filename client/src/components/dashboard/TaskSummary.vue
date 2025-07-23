@@ -31,8 +31,8 @@
           <ClockIcon class="h-6 w-6" />
         </div>
         <div class="ml-4">
-          <p class="text-sm font-medium text-gray-500">Đang thực hiện</p>
-          <p class="text-2xl font-bold text-gray-900">{{ summary.pending }}</p>
+          <p class="text-sm font-medium text-gray-500">Việc cần làm</p>
+          <p class="text-2xl font-bold text-gray-900">{{ summary.todo }}</p>
         </div>
       </div>
     </div>
@@ -46,7 +46,7 @@ defineProps<{
   summary: {
     total: number;
     completed: number;
-    pending: number;
+    todo: number;
   }
 }>();
 </script>

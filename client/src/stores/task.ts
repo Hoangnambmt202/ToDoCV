@@ -55,8 +55,8 @@ export const useTaskStore = defineStore('task', {
   },
   persist: true,
   getters: {
-    pendingTasks: (state) => state.tasks.filter(task => task.status === 'pending'),
+    todoTasks: (state) => state.tasks.filter(task => task.status === 'to-do'),
     completedTasks: (state) => state.tasks.filter(task => task.status === 'completed'),
-    getTaskById: (state) => (id: string) => state.tasks.find(task => task.id === id)
+    getTaskById: (state) => (id: number) => state.tasks.find(task => task.id === id)
   }
 })

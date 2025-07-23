@@ -265,44 +265,5 @@ export const useUIStore = defineStore('ui', {
       }
     },
 
-    // 26. Show success notification
-    showSuccess(message, title = 'Thành công') {
-      return this.addNotification({
-        type: 'success',
-        title,
-        message,
-        duration: 3000
-      })
-    },
-
-    // 27. Show error notification
-    showError(message, title = 'Lỗi') {
-      return this.addNotification({
-        type: 'error',
-        title,
-        message,
-        duration: 5000
-      })
-    },
-
-    // 28. Show warning notification
-    showWarning(message, title = 'Cảnh báo') {
-      return this.addNotification({
-        type: 'warning',
-        title,
-        message,
-        duration: 4000
-      })
-    },
-
-    // 29. Show info notification
-    showInfo(message, title = 'Thông tin') {
-      return this.addNotification({
-        type: 'info',
-        title,
-        message,
-        duration: 3000
-      })
-    }
   }
 })

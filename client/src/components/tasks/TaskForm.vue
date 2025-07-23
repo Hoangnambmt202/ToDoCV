@@ -50,7 +50,7 @@ const emit = defineEmits(['close', 'success']);
 
 const form = ref<Partial<Task>>({ title: '',
   description: '',
-  due_date: '',
+  due_date: null,
   status: 'to-do', 
    });
 const formTitle = computed(() => ('Tạo công việc mới'));
@@ -61,7 +61,7 @@ watch(() => props.visible, (visible) => {
     form.value = {
       title: '',
       description: '',
-      due_date: '',
+      due_date: null ,
       status: 'to-do'
     };
   }
@@ -72,13 +72,22 @@ const close = () => {
 };
 const submitForm = async () => {
   try {
-    const response = await TaskService.addTask(form.value );
+   
+
+    const payload = {
+      ...form.value,
+      due_date: form.value.due_date ? new Date(form.value.due_date) : null,
+  
+    };
+    console.log(typeof form.value.due_date);
+    const response = await TaskService.addTask(payload);
     emit('success');
     form.value = {};
     toast.success(response.message);
-      emit('close');
+    emit('close');
   } catch (error) {
     console.error('Lỗi khi tạo task:', error);
   }
 };
+
 </script>

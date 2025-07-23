@@ -5,7 +5,7 @@
       <li v-for="task in tasks" :key="task.id" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
         <div>
           <p class="font-medium text-gray-800">{{ task.title }}</p>
-          <p class="text-sm text-gray-500">Hạn chót: {{ task.due_date }}</p>
+          <p class="text-sm text-gray-500">Hạn chót: {{ task?.due_date || 'Chưa đặt thời gian đến hạn' }}</p>
         </div>
         <span :class="statusBadgeClass(task.status)" class="px-2 py-1 text-xs font-semibold rounded-full">
           {{ task.status }}

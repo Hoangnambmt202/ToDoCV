@@ -19,14 +19,15 @@ export default class TaskService {
   // Cập nhật task
   static async updateTask(taskId: string, task: UpdateTaskDto): Promise<Task> {
     await api.get('/sanctum/csrf-cookie')
-    const response = await api.put(`/api/tasks/${taskId}`, task)
+    const response = await api.put(`/api/tasks/update/${taskId}`, task)
     return response.data
   }
 
   // Xóa task
-  static async deleteTask(taskId: string): Promise<void> {
+  static async deleteTask(taskId: number) {
     await api.get('/sanctum/csrf-cookie')
-    await api.delete(`/api/tasks/${taskId}`)
+    const response = await api.delete(`/api/tasks/delete/${taskId}`)
+    return response
   }
 
   // Lấy chi tiết task

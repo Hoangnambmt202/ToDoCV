@@ -44,7 +44,7 @@ const logout = async () => {
       </Tippy>
       <span class="text-gray-600 cursor-pointer">Xin chào,
 
-        <Tippy interactive trigger="click" placement="top-start" theme="light" onClickOutSide="() => $emit('close')" ref="tippyRef">
+        <Tippy interactive trigger="click" placement="top-start" theme="light" @onClickOutSide="() => $emit('close')" ref="tippyRef">
           <template #default>
           <button class="cursor-pointer">
             {{ authStore.user?.name || 'Người dùng' }}

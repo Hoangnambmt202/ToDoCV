@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
 import { useHead } from '@vueuse/head';
-import { SunIcon, PlusIcon, ArrowTrendingUpIcon } from '@heroicons/vue/24/outline';
+import { ArrowTrendingUpIcon } from '@heroicons/vue/24/outline';
 import HeadSection from '@/components/sections/HeadSection.vue';
 import TaskSummary from '@/components/dashboard/TaskSummary.vue';
 import TaskChart from '@/components/dashboard/TaskChart.vue';
@@ -10,6 +10,8 @@ import TaskForm from '@/components/tasks/TaskForm.vue';
 import AddTaskButton from '@/components/tasks/AddTaskButton.vue';
 
 import type { Task } from '@/types/task';
+import { useTaskStore } from '@/stores/task';
+import TaskService from '@/services/TaskService';
 
 defineOptions({
   name: 'DashboardView',
@@ -24,33 +26,27 @@ useHead({
 
 const isModalVisible = ref(false);
 const selectedTask = ref<Task | null>(null);
-
+const taskStore = useTaskStore(); // Giả sử bạn có một store để quản lý tác vụ
 // Dữ liệu mẫu, sau này sẽ được thay thế bằng Pinia store hoặc API call
-const allTasks = ref<Task[]>([
-  { id: 1, title: 'Thiết kế giao diện Dashboard', description: 'Hoàn thành thiết kế cho trang Dashboard.', due_date: '2024-07-20', status: 'Completed' },
-  { id: 2, title: 'Phát triển API cho Tasks', description: 'Xây dựng các endpoint cho CRUD tasks.', due_date: '2024-07-22', status: 'In Progress' },
-  { id: 3, title: 'Tích hợp Frontend với API', description: 'Kết nối UI với backend API.', due_date: '2024-07-25', status: 'To Do' },
-  { id: 4, title: 'Viết Unit Test cho services', description: 'Đảm bảo coverage trên 80%.', due_date: '2024-07-28', status: 'To Do' },
-  { id: 5, title: 'Triển khai lên Staging', description: 'Deploy phiên bản mới nhất.', due_date: '2024-07-29', status: 'To Do' },
-]);
+const allTasks = taskStore.tasks;
 
 // --- Dữ liệu tính toán cho các component con ---
 
 const taskSummary = computed(() => ({
-  total: allTasks.value.length,
-  completed: allTasks.value.filter(t => t.status === 'Completed').length,
-  pending: allTasks.value.filter(t => t.status !== 'Completed').length,
+  total: allTasks.length,
+  completed: allTasks.filter(t => t.status === 'completed').length,
+  todo: allTasks.filter(t => t.status !== 'completed').length,
 }));
 
 const taskStats = computed(() => ({
-  completed: allTasks.value.filter(t => t.status === 'Completed').length,
-  inProgress: allTasks.value.filter(t => t.status === 'In Progress').length,
-  toDo: allTasks.value.filter(t => t.status === 'To Do').length,
+  completed: allTasks.filter(t => t.status === 'completed').length,
+  inProgress: allTasks.filter(t => t.status === 'doing').length,
+  toDo: allTasks.filter(t => t.status === 'to-do').length,
 }));
 
 const recentTasks = computed(() => {
   // Sắp xếp theo ID giảm dần để lấy các công việc mới nhất, giới hạn 5 công việc
-  return [...allTasks.value].sort((a, b) => b.id - a.id).slice(0, 5);
+  return [...allTasks].sort((a, b) => b.id - a.id).slice(0, 5);
 });
 
 // --- Logic xử lý Modal ---
@@ -64,22 +60,16 @@ const closeTaskModal = () => {
   isModalVisible.value = false;
   selectedTask.value = null;
 };
-
-const handleSaveTask = (taskData: Partial<Task>) => {
-  if (taskData.id) {
-    const index = allTasks.value.findIndex(t => t.id === taskData.id);
-    if (index !== -1) {
-      allTasks.value[index] = { ...allTasks.value[index], ...taskData };
-    }
-  } else {
-    const newTask: Task = {
-        id: Date.now(),
-        title: taskData.title || 'Không có tiêu đề',
-        description: taskData.description || '',
-        due_date: taskData.due_date || '',
-        status: taskData.status || 'To Do',
-    };
-    allTasks.value.push(newTask);
+const handleLoadTasks = async () => {
+  try {
+    taskStore.setLoading(true);
+    const response = await TaskService.getTasks(); // ✅ phải await
+    taskStore.setTasks(response.data);
+  } catch (error) {
+    taskStore.setError('Lỗi tải lại danh sách công việc');
+  } finally {
+    taskStore.setLoading(false);
+    closeTaskModal();  
   }
 };
 </script>
@@ -108,11 +98,11 @@ const handleSaveTask = (taskData: Partial<Task>) => {
 
     <AddTaskButton @click="openTaskModal(null)" />
     
-    <TaskForm 
-      :visible="isModalVisible" 
-      :task="selectedTask" 
+     <TaskForm
+      :visible="isModalVisible"
+      :task="selectedTask"
       @close="closeTaskModal"
-      @save="handleSaveTask"
+      @success="handleLoadTasks"
     />
   </div>
 </template>

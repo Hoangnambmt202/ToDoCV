@@ -25,19 +25,32 @@
 
 <script setup lang="ts">
 import { CalendarIcon, InformationCircleIcon, StarIcon, TrashIcon } from '@heroicons/vue/24/outline';
-import type { Task } from '@/types/task';
 import { useUIStore } from '@/stores/ui';
+import { useTaskStore } from '@/stores/task';
 
 defineOptions({
   name: 'TaskItem'
 });
+const taskStore = useTaskStore();
 const props = defineProps<{
-  task: Task;
+  task: {
+    id: number;
+    title: string;
+    description: string;
+    due_date: string;
+  };
 }>();
+
 const uiStore = useUIStore();
-const showDetail = (id:string) => {
-  
- uiStore.toggleRightSidebar();
+const showDetail = async (id:number) => {
+  const response = await taskStore.getTaskById(id);
+  if (response) {
+    uiStore.toggleRightSidebar();
+    taskStore.setSelectedTask(response);
+  } else {
+    console.error('Task not found');
+  }
+
 
 };
 </script>
