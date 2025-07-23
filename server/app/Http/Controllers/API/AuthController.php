@@ -21,7 +21,7 @@ class AuthController extends Controller
 
         $user = User::create([
             'name' => $request->name,
-            'email'=> $request->email,
+            'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
@@ -84,13 +84,34 @@ class AuthController extends Controller
         ]);
     }
 
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+        
+
+        $user = $request->user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['message' => 'Mật khẩu hiện tại không đúng'], 422);
+        }
+
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        return response()->json(['message' => 'Đổi mật khẩu thành công']);
+    }
+
+
 
     public function logout(Request $request)
     {
-         Auth::guard('web')->logout();
+        Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-      
+
 
         return response()->json([
             'message' => 'Đăng xuất thành công'

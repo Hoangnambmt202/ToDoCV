@@ -49,19 +49,22 @@
                         <label for="current_password" class="block text-sm font-medium text-gray-700">Mật khẩu hiện
                             tại</label>
                         <input type="password" id="current_password" v-model="passwordForm.current_password"
-                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                            placeholder="Nhập mật khẩu hiện tại" required>
                     </div>
                     <div>
                         <label for="new_password" class="block text-sm font-medium text-gray-700">Mật khẩu mới</label>
                         <input type="password" id="new_password" v-model="passwordForm.new_password"
-                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                            placeholder="Nhập mật khẩu mới" required>
                     </div>
                     <div>
                         <label for="new_password_confirmation" class="block text-sm font-medium text-gray-700">Xác nhận
                             mật khẩu mới</label>
                         <input type="password" id="new_password_confirmation"
                             v-model="passwordForm.new_password_confirmation"
-                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                            placeholder="Nhập lại mật khẩu mới" required>
                     </div>
                     <div class="flex justify-end">
                         <button type="submit"
@@ -82,19 +85,28 @@ import HeadSection from '@/components/sections/HeadSection.vue';
 import { useAuthStore } from '@/stores/auth';
 import AuthService from '@/services/AuthService';
 import { toast } from 'vue3-toastify';
+import { useHead } from '@vueuse/head';
 
 const authStore = useAuthStore();
 const isEditing = ref(false)
 const originalProfile = ref({ name: '', email: '' })
 
-onMounted( async () => {
+useHead({
+    title: 'Hồ sơ của bạn | ToDoCV',
+    meta: [
+        {
+            name: 'description',
+            content: 'Quản lý thông tin cá nhân và thay đổi mật khẩu của bạn.',
+        },
+    ],
+});
+onMounted(async () => {
     //lấy thông tin user từ api 
     const response = await AuthService.getUser();
     authStore.setUser(response.data);
     if (authStore.user) {
         profileForm.value.name = authStore.user.name;
         profileForm.value.email = authStore.user.email;
-
         // Sao lưu dữ liệu gốc
         originalProfile.value = { ...profileForm.value }
     }
@@ -113,7 +125,6 @@ const cancelEdit = () => {
     profileForm.value = { ...originalProfile.value }
     isEditing.value = false
 }
-
 
 const profileForm = ref({
     name: '',
@@ -134,30 +145,40 @@ onMounted(() => {
 
 const updateProfile = async () => {
     try {
-        if (profileForm)  {
+        if (profileForm) {
             await AuthService.updateUser(profileForm.value);
             toast.success('Cập nhật thông tin thành công!');
             const response = await AuthService.getUser();
             authStore.setUser(response.data);
-   
+
         }
-            
+
     } catch (error) {
         toast.error('Có lỗi xảy ra, vui lòng thử lại.');
     }
 };
 
 const changePassword = async () => {
-    if (passwordForm.value.new_password !== passwordForm.value.new_password_confirmation) {
-        toast.error('Mật khẩu mới không khớp!');
-        return;
-    }
     try {
-        // Logic gọi API thay đổi mật khẩu
-        toast.success('Đổi mật khẩu thành công!');
-        passwordForm.value = { current_password: '', new_password: '', new_password_confirmation: '' };
-    } catch (error) {
-        toast.error('Mật khẩu hiện tại không đúng hoặc đã xảy ra lỗi.');
+        if (passwordForm.value.new_password !== passwordForm.value.new_password_confirmation) {
+            toast.error('Mật khẩu mới và xác nhận mật khẩu không khớp!');
+            return;
+        }
+        else if (passwordForm.value.new_password.length < 8) {
+            toast.error('Mật khẩu mới phải có ít nhất 8 ký tự!');
+            return;
+        }
+        const response = await AuthService.changePassword(passwordForm.value);
+        toast.success(response.data.message || 'Đổi mật khẩu thành công!');
+        passwordForm.value = {
+            current_password: '',
+            new_password: '',
+            new_password_confirmation: ''
+        };
+    } catch (error: any) {
+        const message = error.response?.data?.message || 'Đã xảy ra lỗi.';
+        toast.error(message);
     }
 };
+
 </script>

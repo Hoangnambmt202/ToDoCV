@@ -16,11 +16,11 @@ export const useAuthStore = defineStore('auth', {
 
   actions: {
     setUser(userData: any) {
-      this.loading = true
+    
       this.user = userData
     },
     logout() {
-      this.loading = true
+    
       this.user = null
     },
   },

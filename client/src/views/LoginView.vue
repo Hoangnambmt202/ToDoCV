@@ -21,23 +21,26 @@ const password = ref('');
 const error = ref('');
 const router = useRouter();
 const authStore = useAuthStore();
-const loading = authStore.loading;
-
+authStore.loading = false; // ✅ khởi tạo loading
 const handleLogin = async () => {
-  loading.value = true;
   error.value = '';
+  authStore.loading = true; // ✅ bật loading
+
   try {
     const response = await AuthService.login({
       email: email.value,
       password: password.value,
     });
-  
+
     authStore.setUser(response.data.data);
-    toast.success(response?.data.message + `. Chào mừng ` + response?.data.data.name  , {
-      position: 'top-right',
-      autoClose: 3000,
-      onClose: () => router.push('/dashboard')
-    });
+    toast.success(
+      `${response?.data.message}. Chào mừng ${response?.data.data.name}`,
+      {
+        position: 'top-right',
+        autoClose: 3000,
+        onClose: () => router.push('/dashboard'),
+      }
+    );
   } catch (err) {
     if (err.response?.status === 422) {
       error.value = 'Vui lòng kiểm tra lại email và mật khẩu';
@@ -45,10 +48,12 @@ const handleLogin = async () => {
       error.value = 'Đăng nhập thất bại. Vui lòng thử lại sau';
     }
   } finally {
-    loading.value = false;
+    email.value = '';
+    password.value = '';
+    authStore.loading = false; // ✅ tắt loading
   }
-
 };
+
 </script>
 
 <template>
@@ -91,9 +96,9 @@ const handleLogin = async () => {
               <a href="#" class="text-sm font-medium text-primary-600 hover:underline dark:text-gray-400">Bạn quên
                 mật khẩu?</a>
             </div>
-            <button type="submit" :disabled="loading"
-              class="w-full text-white bg-blue-500 hover:bg-blue-700 cursor-pointer focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
-              {{ loading ? 'Đang đăng nhập...' : 'Tiếp tục' }}
+            <button type="submit" :disabled="authStore.loading"
+              class="w-full text-white bg-blue-500 hover:bg-blue-700 cursor-pointer focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-blue-300">
+              {{ authStore.loading ? 'Đang đăng nhập...' : 'Tiếp tục' }}
             </button>
             <p to="/sign-up" class="text-sm font-light text-gray-500 dark:text-gray-400">
               Bạn chưa có tài khoản?
