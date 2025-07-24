@@ -35,4 +35,10 @@ export default class TaskService {
     const response = await api.get(`/api/tasks/show/${taskId}`)
     return response.data
   }
+  // Đánh dấu task là quan trọng
+  static async toggleImportant(taskId: number): Promise<Task> {
+    await api.get('/sanctum/csrf-cookie')
+    const response = await api.patch(`/api/tasks/${taskId}/toggle-important`)
+    return response.data
+  }
 }

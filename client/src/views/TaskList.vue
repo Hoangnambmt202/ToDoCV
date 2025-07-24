@@ -16,7 +16,7 @@
         class="space-y-2"
       >
         <TaskItem
-          v-for="task in paginatedTasks"
+          v-for="task in sortedTasks"
           :key="task.id"
           :task="task"
           @edit="openTaskModal"
@@ -72,19 +72,19 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import TaskFilter from '@/components/tasks/TaskFilter.vue';
-import Pagination from '@/components/layout/Pagination.vue';
-import type { Task } from '@/types/task';
-import HeadSection from '@/components/sections/HeadSection.vue';
-import { ListBulletIcon } from '@heroicons/vue/24/outline';
 import { useHead } from '@vueuse/head';
+import { ListBulletIcon } from '@heroicons/vue/24/outline';
+
+import type { Task } from '@/types/task';
+import { useTaskStore } from '@/stores/task';
 import TaskForm from '@/components/tasks/TaskForm.vue';
 import AddTaskButton from '@/components/tasks/AddTaskButton.vue';
 import TaskService from '@/services/TaskService';
-import { useTaskStore } from '@/stores/task';
+import HeadSection from '@/components/sections/HeadSection.vue';
+import TaskFilter from '@/components/tasks/TaskFilter.vue';
+import Pagination from '@/components/layout/Pagination.vue';
 import TaskItem from '@/components/tasks/TaskItem.vue';
 
-defineEmits(['edit', 'delete']);
 
 useHead({
   title: 'Công việc của tôi | ToDoCV',
@@ -96,16 +96,17 @@ useHead({
   ],
 });
 
+defineEmits(['edit', 'delete']);
 const filters = ref({ status: '' });
 const currentPage = ref(1);
 const itemsPerPage = ref(6);
 const isModalVisible = ref(false);
 const selectedTask = ref<Task | null>(null);
 const taskStore = useTaskStore();
+const allTasks = computed(() => taskStore.tasks);
 onMounted(() => {
   loadTasks();
 });
-const allTasks = computed(() => taskStore.tasks);
 
 const loadTasks = async () => {
   try {
@@ -119,7 +120,13 @@ const loadTasks = async () => {
   }
 };
 
-
+const sortedTasks = computed(() => {
+  return [...taskStore.tasks].sort((a, b) => {
+    // Quan trọng lên đầu
+    if (a.important === b.important) return 0;
+    return a.important ? -1 : 1;
+  });
+});
 const filteredTasks = computed(() => {
   return allTasks.value.filter(task => {
     if (filters.value.status && task.status !== filters.value.status) {
@@ -129,7 +136,6 @@ const filteredTasks = computed(() => {
   });
 });
 
-const hasTasks = computed(() => allTasks.value.length > 0);
 
 const paginatedTasks = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage.value;

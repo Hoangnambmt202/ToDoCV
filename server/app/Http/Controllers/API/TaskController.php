@@ -77,6 +77,18 @@ class TaskController extends Controller
         ], 200);
     }
 
+    public function toggleImportant($id)
+{
+    $task = Task::findOrFail($id);
+    $task->important = !$task->important;
+    $task->save();
+
+    return response()->json([
+        'message' => 'Cập nhật trạng thái quan trọng thành công',
+        'task' => $task
+    ]);
+}
+
     /**
      * Remove the specified resource from storage.
      */

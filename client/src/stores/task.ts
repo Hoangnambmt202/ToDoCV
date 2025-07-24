@@ -1,62 +1,83 @@
-import { defineStore } from 'pinia'
-import TaskService from '@/services/TaskService'
-import type { Task, CreateTaskDto, UpdateTaskDto } from '@/types/task'
+import { defineStore } from 'pinia';
+import { ref, computed } from 'vue';
+import type { Task } from '@/types/task';
 
-interface TaskState {
-  tasks: Task[]
-  selectedTask: Task | null
-  loading: boolean
-  error: string | null
-}
+export const useTaskStore = defineStore('task', () => {
+  // --- State ---
+  const tasks = ref<Task[]>([]);
+  const selectedTask = ref<Task | null>(null);
+  const loading = ref(false);
+  const error = ref<string | null>(null);
 
-export const useTaskStore = defineStore('task', {
-  state: (): TaskState => ({
-    tasks: [],
-    selectedTask: null,
-    loading: false,
-    error: null
-  }),
+  // --- Getters (dưới dạng computed properties) ---
+  const todoTasks = computed(() => tasks.value.filter(task => task.status === 'to-do'));
+  const completedTasks = computed(() => tasks.value.filter(task => task.status === 'completed'));
+  const getTaskById = computed(() => {
+    return (id: number) => tasks.value.find(task => task.id === id);
+  });
 
-  actions: {
-    setTasks(tasks: Task[]) {
-      this.tasks = tasks
-    },
-
-    addTaskToStore(task: Task) {
-
-      this.tasks.push(task)
-    },
-
-    updateTask(updatedTask: Task) {
-      const index = this.tasks.findIndex(task => task.id === updatedTask.id);
-      if (index !== -1) {
-        this.tasks[index] = updatedTask;
-      }
-    },
-
-    removeTaskFromStore(taskId: string) {
-      this.tasks = this.tasks.filter(task => task.id !== taskId)
-      if (this.selectedTask?.id === taskId) {
-        this.selectedTask = null
-      }
-    },
-
-    setSelectedTask(task: Task| null) {
-      this.selectedTask = task
-    },
-
-    setLoading(loading: boolean) {
-      this.loading = loading
-    },
-
-    setError(error: string | null) {
-      this.error = error
-    },
-  },
-  persist: true,
-  getters: {
-    todoTasks: (state) => state.tasks.filter(task => task.status === 'to-do'),
-    completedTasks: (state) => state.tasks.filter(task => task.status === 'completed'),
-    getTaskById: (state) => (id: number) => state.tasks.find(task => task.id === id)
+  // --- Actions (dưới dạng functions) ---
+  function setTasks(newTasks: Task[]) {
+    tasks.value = newTasks;
   }
-})
+
+  function addTaskToStore(task: Task) {
+    tasks.value.push(task);
+  }
+
+  function updateTask(updatedTask: Task) {
+    const index = tasks.value.findIndex(task => task.id === updatedTask.id);
+    if (index !== -1) {
+      tasks.value[index] = updatedTask;
+    }
+  }
+
+  function removeTaskFromStore(taskId: number) {
+    tasks.value = tasks.value.filter(task => task.id !== taskId);
+    if (selectedTask.value?.id === taskId) {
+      selectedTask.value = null;
+    }
+  }
+
+  function setSelectedTask(task: Task | null) {
+    selectedTask.value = task;
+  }
+
+  function toggleImportant(taskId: number) {
+    const task = tasks.value.find(task => task.id === taskId);
+    if (task) {
+      task.important = !task.important;
+    }
+  }
+
+  function setLoading(isLoading: boolean) {
+    loading.value = isLoading;
+  }
+
+  function setError(errorMessage: string | null) {
+    error.value = errorMessage;
+  }
+
+  return {
+    // State
+    tasks,
+    selectedTask,
+    loading,
+    error,
+    // Getters
+    todoTasks,
+    completedTasks,
+    getTaskById,
+    // Actions
+    setTasks,
+    addTaskToStore,
+    updateTask,
+    removeTaskFromStore,
+    setSelectedTask,
+    toggleImportant,
+    setLoading,
+    setError,
+  };
+}, {
+  persist: true, // Bật persist cho toàn bộ store
+});
