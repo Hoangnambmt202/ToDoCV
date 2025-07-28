@@ -17,7 +17,7 @@ export default class TaskService {
   }
 
   // Cập nhật task
-  static async updateTask(taskId: string, task: UpdateTaskDto): Promise<Task> {
+  static async updateTask(taskId: number, task: UpdateTaskDto): Promise<Task> {
     await api.get('/sanctum/csrf-cookie')
     const response = await api.put(`/api/tasks/update/${taskId}`, task)
     return response.data

@@ -1,9 +1,5 @@
 <template>
-  <HeadSection
-    :icon="ListBulletIcon"
-    title="Công việc của tôi"
-    customClassIcon="text-blue-600"
-  />
+  <HeadSection :icon="ListBulletIcon" title="Công việc của tôi" customClassIcon="text-blue-600" />
 
   <div class="bg-white rounded-lg shadow">
     <!-- Task Filter -->
@@ -11,37 +7,18 @@
 
     <!-- Task List -->
     <div class="p-4 min-h-[300px]">
-      <div
-        v-if="paginatedTasks.length > 0"
-        class="space-y-2"
-      >
-        <TaskItem
-          v-for="task in sortedTasks"
-          :key="task.id"
-          :task="task"
-          @edit="openTaskModal"
-          @delete="handleDelTask"
-        />
+      <div v-if="paginatedTasks.length > 0" class="space-y-2">
+        <TaskItem v-for="task in sortedTasks" :key="task.id" :task="task" @edit="openTaskModal"
+          @delete="handleDelTask" />
       </div>
 
       <!-- Empty State -->
-      <div
-        v-else
-        class="flex flex-col items-center justify-center h-full text-center gap-4 py-12"
-      >
+      <div v-else class="flex flex-col items-center justify-center h-full text-center gap-4 py-12">
         <p class="text-gray-500 text-lg">Bạn chưa có công việc nào.</p>
-        <button
-          @click="openTaskModal(null)"
-          class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow transition"
-        >
+        <button @click="openTaskModal(null)"
+          class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow transition">
           <span>Thêm công việc</span>
-          <svg
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            viewBox="0 0 24 24"
-          >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
           </svg>
         </button>
@@ -52,21 +29,11 @@
     <AddTaskButton @click="openTaskModal(null)" />
 
     <!-- Modal form -->
-    <TaskForm
-      :visible="isModalVisible"
-      :task="selectedTask"
-      @close="closeTaskModal"
-      @success="handleLoadTasks"
-    />
+    <TaskForm :visible="isModalVisible" :task="selectedTask" @close="closeTaskModal" @success="handleLoadTasks" />
 
     <!-- Pagination -->
-    <Pagination
-      v-if="filteredTasks.length > itemsPerPage"
-      :current-page="currentPage"
-      :total-items="filteredTasks.length"
-      :items-per-page="itemsPerPage"
-      @page-change="handlePageChange"
-    />
+    <Pagination v-if="filteredTasks.length > itemsPerPage" :current-page="currentPage"
+      :total-items="filteredTasks.length" :items-per-page="itemsPerPage" @page-change="handlePageChange" />
   </div>
 </template>
 
@@ -84,6 +51,7 @@ import HeadSection from '@/components/sections/HeadSection.vue';
 import TaskFilter from '@/components/tasks/TaskFilter.vue';
 import Pagination from '@/components/layout/Pagination.vue';
 import TaskItem from '@/components/tasks/TaskItem.vue';
+import { useCategoryStore } from '@/stores/category';
 
 
 useHead({
@@ -103,6 +71,7 @@ const itemsPerPage = ref(6);
 const isModalVisible = ref(false);
 const selectedTask = ref<Task | null>(null);
 const taskStore = useTaskStore();
+const categoryStore = useCategoryStore();
 const allTasks = computed(() => taskStore.tasks);
 onMounted(() => {
   loadTasks();
@@ -113,6 +82,9 @@ const loadTasks = async () => {
     taskStore.setLoading(true);
     const tasks = await TaskService.getTasks();
     taskStore.setTasks(tasks.data);
+    // Extract all unique categories from all tasks
+    categoryStore.setCategoriesFromTasks(tasks.data);
+
   } catch (err) {
     taskStore.setError('Lỗi tải danh sách công việc');
   } finally {
@@ -156,17 +128,17 @@ const closeTaskModal = () => {
 const handleLoadTasks = async () => {
   try {
     taskStore.setLoading(true);
-    const response = await TaskService.getTasks(); 
+    const response = await TaskService.getTasks();
     taskStore.setTasks(response.data);
   } catch (error) {
     taskStore.setError('Lỗi tải lại danh sách công việc');
   } finally {
     taskStore.setLoading(false);
-    closeTaskModal();  
+    closeTaskModal();
   }
 };
 
-const handleDelTask = async (taskId: string) => {
+const handleDelTask = async (taskId: number) => {
   try {
     await TaskService.deleteTask(taskId);
     taskStore.removeTaskFromStore(taskId);

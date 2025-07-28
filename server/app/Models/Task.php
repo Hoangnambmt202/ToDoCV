@@ -16,6 +16,17 @@ class Task extends Model
         'important',
         'user_id',
     ];
+    // App\Models\Task.php
+
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class, 'task_category')
+            ->withPivot('user_id');
+    }
+
+
+
+
     public function user()
     {
         return $this->belongsTo(User::class);

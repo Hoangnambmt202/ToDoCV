@@ -4,6 +4,7 @@ export interface Task {
   description: string;
   due_date: Date | null;
   important: boolean;
+  categories: string[]; // Danh sách tên danh mục
   status: 'to-do' | 'doing' | 'completed';
 }
 
@@ -23,4 +24,5 @@ export interface UpdateTaskDto {
   due_date?: Date | null;
   important?: boolean;
   user_id?: number;
+  category_names?: string[]; // Danh sách tên danh mục
 }

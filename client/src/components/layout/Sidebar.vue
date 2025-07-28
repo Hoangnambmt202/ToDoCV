@@ -3,6 +3,7 @@ import {
   ArrowTrendingUpIcon,
   ListBulletIcon,
   Bars3Icon,
+  StarIcon,
 } from '@heroicons/vue/24/outline'
 import { computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
@@ -24,7 +25,6 @@ const menuItems = computed(()=>[
     label: 'Bảng điều khiển',
     icon: ArrowTrendingUpIcon,
     href: '/dashboard',
-    
     color: 'text-yellow-600',
   },
   {
@@ -96,11 +96,6 @@ const getCountClasses = (itemId: string) => {
     : 'bg-gray-100 text-gray-600 group-hover:bg-gray-200'
 }
 
-// Dummy buttons
-const addNewTask = () => {
-  alert('Thêm tác vụ mới - Tính năng sẽ được phát triển')
-}
-
 const openSettings = () => {
   alert('Mở cài đặt - Tính năng sẽ được phát triển')
 }
@@ -151,14 +146,14 @@ const openSettings = () => {
                   </div>
                 </div>
 
-                <!-- Priority Badge -->
-                <div v-if="result.priority" :class="[
+                <!-- important Badge -->
+                <div v-if="result.important" :class="[
                   'px-2 py-1 text-xs rounded-full',
-                  result.priority === 'high' ? 'bg-red-100 text-red-800' :
-                  result.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-green-100 text-green-800'
+                 
+                  result.important  ? ' text-yellow-800' :
+                  ' text-gray-300'
                 ]">
-                  {{ result.priority }}
+                  <StarIcon class="h-4 w-4 inline-block mr-1" />
                 </div>
               </div>
             </li>
