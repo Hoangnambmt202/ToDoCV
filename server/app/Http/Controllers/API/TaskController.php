@@ -26,6 +26,7 @@ class TaskController extends Controller
                     'description' => $task->description,
                     'status' => $task->status,
                     'due_date' => $task->due_date,
+                    'important' => $task->important,
                     'categories' => $task->categories->pluck('name'), // chỉ lấy tên
                 ];
             });

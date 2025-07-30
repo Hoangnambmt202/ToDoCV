@@ -7,13 +7,46 @@
 
     <!-- Task List -->
     <div class="p-4 min-h-[300px]">
-      <div v-if="paginatedTasks.length > 0" class="space-y-2">
-        <TaskItem v-for="task in sortedTasks" :key="task.id" :task="task" @edit="openTaskModal"
+      <!-- Task chưa hoàn thành -->
+      <div v-if="uncompletedTasks.length > 0" class="space-y-2">
+        <div
+          class=" cursor-default select-none bg-white w-full rounded-lg shadow-md p-4 border border-gray-400 hover:bg-gray-50">
+          <h2 class="font-semibold text-gray-700 mb-2 flex gap-2 items-center">📌 Đang thực hiện
+            <span class="rounded-full flex justify-center items-center w-6 h-6 bg-gray-300">{{ uncompletedTasks.length
+              }}</span>
+          </h2>
+        </div>
+        <TaskItem v-for="task in uncompletedTasks" :key="task.id" :task="task" @edit="openTaskModal"
           @delete="handleDelTask" />
       </div>
 
+      <!-- Task đã hoàn thành -->
+      <div v-if="completedTasks.length > 0" class="space-y-2 mt-6 border-t pt-4 border-gray-200">
+        <div
+          class="flex justify-between items-center cursor-pointer select-none bg-white w-full rounded-lg shadow-md p-4 border border-gray-400 hover:bg-gray-50"
+          @click="showCompleted = !showCompleted">
+          <h2 class="font-semibold text-gray-700 flex gap-2 items-center">
+            ✅ Đã hoàn thành
+            <span class="rounded-full flex justify-center items-center w-6 h-6 bg-gray-300">{{ completedTasks.length
+              }}</span>
+          </h2>
+          <span class="text-sm text-blue-500 underline hover:text-blue-700">
+            {{ showCompleted ? 'Ẩn' : 'Hiện' }}
+          </span>
+        </div>
+
+        <transition name="fade">
+          <div v-show="showCompleted" class="mt-2 space-y-2">
+            <TaskItem v-for="task in completedTasks" :key="task.id" :task="task" @edit="openTaskModal"
+              @delete="handleDelTask" />
+          </div>
+        </transition>
+      </div>
+
+
+
       <!-- Empty State -->
-      <div v-else class="flex flex-col items-center justify-center h-full text-center gap-4 py-12">
+      <div v-else-if="!completedTasks" class="flex flex-col items-center justify-center h-full text-center gap-4 py-12">
         <p class="text-gray-500 text-lg">Bạn chưa có công việc nào.</p>
         <button @click="openTaskModal(null)"
           class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow transition">
@@ -65,7 +98,10 @@ useHead({
 });
 
 defineEmits(['edit', 'delete']);
-const filters = ref({ status: '' });
+const filters = ref<{ status: string; important: boolean; keyword: string; due_date: string; categories: string[] }>({
+  status: ''
+  , important: false, keyword: '', due_date: '', categories: []
+});
 const currentPage = ref(1);
 const itemsPerPage = ref(6);
 const isModalVisible = ref(false);
@@ -73,6 +109,9 @@ const selectedTask = ref<Task | null>(null);
 const taskStore = useTaskStore();
 const categoryStore = useCategoryStore();
 const allTasks = computed(() => taskStore.tasks);
+const showCompleted = ref(false);
+
+
 onMounted(() => {
   loadTasks();
 });
@@ -101,12 +140,23 @@ const sortedTasks = computed(() => {
 });
 const filteredTasks = computed(() => {
   return allTasks.value.filter(task => {
-    if (filters.value.status && task.status !== filters.value.status) {
-      return false;
-    }
+    const { status, important, keyword, due_date, categories } = filters.value;
+    if (status && task.status !== status) return false;
+    if (important && !task.important) return false;
+    if (keyword && !task.title.toLowerCase().includes(keyword.toLowerCase()) && !task.description.toLowerCase().includes(keyword.toLowerCase())) return false;
+    if (due_date && task.due_date && new Date(task.due_date).toISOString().slice(0, 10) !== due_date) return false;
+    if (categories.length && !categories.some(c => categoryStore.getCategoriesForTask(task.id).includes(c))) return false;
     return true;
-  });
+  })
 });
+
+const uncompletedTasks = computed(() =>
+  filteredTasks.value.filter(task => task.status !== 'completed')
+);
+
+const completedTasks = computed(() =>
+  filteredTasks.value.filter(task => task.status === 'completed')
+);
 
 
 const paginatedTasks = computed(() => {
@@ -147,7 +197,10 @@ const handleDelTask = async (taskId: number) => {
   }
 };
 
-const applyFilter = (newFilters: { status: string }) => {
+const applyFilter = (newFilters: {
+  status: string,
+  important: boolean, keyword: string, due_date: string, categories: string[]
+}) => {
   currentPage.value = 1;
   filters.value = newFilters;
 };

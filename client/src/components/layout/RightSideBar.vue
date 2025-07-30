@@ -32,8 +32,7 @@ const categoryOptions = ref<string[]>([
   'Urgent',
   'Later',
   'Important',
-  'Low Priority',
-  'High Priority',
+  
 ]); // Danh sách các category
 const categoryStore = useCategoryStore();
 
@@ -69,8 +68,6 @@ const saveChanges = async () => {
     const response = await TaskService.getTasks();
     taskStore.setTasks(response.data);
     categoryStore.setCategoriesFromTasks(response.data);
-
-
   }
 };
 
@@ -97,7 +94,29 @@ const toggleImportant = async (id: number) => {
     toast.error('Đánh dấu thất bại!');
   }
 };
+const toggleCompleted = async () => {
+  if (!taskStore.selectedTask) return;
+  const task = taskStore.selectedTask;
 
+  const newStatus = task.status === 'completed' ? 'to-do' : 'completed';
+  task.status = newStatus;
+
+  try {
+    await TaskService.updateTask(task.id, {
+      ...task,
+      status: newStatus,
+      category_names: selectedCategories.value,
+    });
+    toast.success(`Đã đánh dấu là ${newStatus === 'completed' ? 'hoàn thành' : 'chưa hoàn thành'}`);
+    
+    // Cập nhật lại danh sách task
+    const response = await TaskService.getTasks();
+    taskStore.setTasks(response.data);
+    categoryStore.setCategoriesFromTasks(response.data);
+  } catch (err) {
+    toast.error('Cập nhật trạng thái thất bại!');
+  }
+};
 const toggleCollapse = () => {
   ui.toggleRightSidebar();
 };
@@ -111,7 +130,9 @@ const toggleCollapse = () => {
       <div class="bg-white shadow-lg p-4 sticky z-50 top-0 left-0 right-0">
         <div v-if="taskStore.selectedTask" class="flex items-center flex-col space-y-2">
           <div class="flex items-center gap-2 w-full">
-            <input type="checkbox" name="check" id="check" class="w-6 h-6 ">
+            <input type="checkbox" name="check" id="check" class="w-6 h-6"
+              :checked="taskStore.selectedTask.status === 'completed'" @change="toggleCompleted" />
+            
             <input v-model="taskStore.selectedTask.title"
               class="w-full p-2 border-b border-b-gray-500 focus:outline-none" @change="debouncedSaveChanges" />
             <button @click="toggleImportant(taskStore.selectedTask.id)" class="cursor-pointer"
@@ -165,11 +186,11 @@ const toggleCollapse = () => {
 
           <div class="flex gap-2 items-center">
             <TagIcon class="w-6 h-6 text-black" />
-            <div class="flex flex-wrap gap-1">
+            <div class="flex flex-1 gap-1">
               <span v-for="category in selectedCategories" :key="category"></span>
               <Multiselect v-model="selectedCategories" :multiple="true" :options="categoryOptions" mode="tags" taggable
                 :createTag="true" placeholder="Chọn hoặc thêm danh mục" :searchable="true" @tag="handleNewCategory"
-                @change="debouncedSaveChanges" />
+                @change="debouncedSaveChanges" class="w-full" />
             </div>
 
 

@@ -2,10 +2,10 @@
   <div class="bg-white w-full rounded-lg shadow-md p-4 flex justify-between">
     <div>
       <div class="flex justify-between items-start">
-        <h3 class="font-bold text-lg text-gray-800">{{ task.title }}</h3>
+        <h3 class="font-bold text-lg text-gray-800"  :class="{ 'line-through text-gray-500': task.status === 'completed' }">{{ task.title }}</h3>
       </div>
       <div class="flex items-end gap-2">
-        <p class="text-gray-600 text-sm ">{{ task.description }}</p>
+        <p class="text-gray-600 text-sm " :class="{ 'line-through text-gray-400': task.status === 'completed' }">{{ task.description }}</p>
         <span class="flex items-center text-gray-500 ">
           <CalendarIcon class="h-4 w-4 mr-1" />
           <span class="text-sm">{{ task.due_date }}</span>
@@ -57,6 +57,7 @@ const props = defineProps<{
     description: string;
     due_date: Date | null;
     important: boolean;
+    status: string;
   };
 }>();
 
@@ -92,8 +93,8 @@ const showDetail = async (id: number) => {
 };
 const toggleImportant = async (id: number) => {
   try {
-    await TaskService.toggleImportant(id);
     taskStore.toggleImportant(id);
+    await TaskService.toggleImportant(id);
   } catch (error) {
     console.error('Đánh dấu thất bại:', error);
   }
