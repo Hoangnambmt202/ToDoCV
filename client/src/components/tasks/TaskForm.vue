@@ -32,9 +32,9 @@
                 <template #content>
                   <p class="p-2" >Thời hạn</p>
                   <hr class="bg-gray-300 text-gray-300">
-                  <button @click="setDate('today')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded">Hôm nay</button>
-                    <button @click="setDate('tomorrow')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded">Ngày mai</button>
-                    <button @click="setDate('next_week')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded">Tuần tới</button>
+                  <button type="button" @click="setDate('today')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded">Hôm nay</button>
+                    <button type="button" @click="setDate('tomorrow')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded">Ngày mai</button>
+                    <button type="button" @click="setDate('next_week')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded">Tuần tới</button>
                     <hr class="my-1 bg-gray-300 text-gray-300">
                     <input type="date" v-model="manualDate" @change="setManualDate"
                 class="mt-2 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" />
@@ -140,7 +140,7 @@ const submitForm = async () => {
   try {
     const payload = {
       ...form.value,
-      user_id: 1, // Tạm thời hardcode, sẽ lấy từ auth store
+      
     };
     const response = await TaskService.addTask(payload as any); // Tạm thời dùng as any
     emit('success');

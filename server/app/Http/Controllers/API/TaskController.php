@@ -27,7 +27,6 @@ class TaskController extends Controller
                     'status' => $task->status,
                     'due_date' => $task->due_date,
                     'important' => $task->important,
-                    'categories' => $task->categories->pluck('name'), // chỉ lấy tên
                 ];
             });
 
@@ -78,18 +77,7 @@ class TaskController extends Controller
         );
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    // public function update(Request $request, string $id)
-    // {
-    //     $task = Task::findOrFail($id);
-    //     $task->update($request->all());
-    //     return response()->json([
-    //         'message' => 'Công việc đã được cập nhật thành công',
-    //         'data' => $task,
-    //     ], 200);
-    // }
+
     public function update(Request $request, string $id)
     {
         $task = Task::findOrFail($id);
@@ -100,33 +88,15 @@ class TaskController extends Controller
             'status' => 'required|in:to-do,doing,completed',
             'due_date' => 'nullable|date',
             'important' => 'nullable|boolean',
-            'category_names' => 'nullable|array',
-            'category_names.*' => 'string|max:255',
         ]);
 
-        // Định dạng ngày nếu có
         $validated['due_date'] = isset($validated['due_date'])
             ? Carbon::parse($validated['due_date'])->format('Y-m-d')
             : null;
 
         $task->update($validated);
 
-        // Xử lý category nếu có gửi lên
-        if ($request->has('category_names')) {
-            $categoryIds = [];
-            foreach ($request->category_names as $name) {
-                $category = \App\Models\Category::firstOrCreate([
-                    'name' => $name,
-                    'user_id' => auth()->id(),
-                ]);
-                $categoryIds[$category->id] = ['user_id' => auth()->id()]; // 👈 thêm user_id vào pivot
-            }
-
-            // Gắn category kèm user_id vào bảng trung gian
-            $task->categories()->sync($categoryIds);
-        }
-
-        // Load lại category để trả về frontend
+        // Load lại category để trả về frontend (nếu muốn)
         $task->load('categories');
 
         return response()->json([
@@ -134,6 +104,7 @@ class TaskController extends Controller
             'data' => $task
         ], 200);
     }
+
 
 
     public function toggleImportant($id)

@@ -2,8 +2,35 @@
   <HeadSection :icon="ListBulletIcon" title="Công việc của tôi" customClassIcon="text-blue-600" />
 
   <div class="bg-white rounded-lg shadow">
-    <!-- Task Filter -->
-    <TaskFilter @filter="applyFilter" />
+
+    <!-- Bộ lọc -->
+    <div class="p-4 ">
+      <div class="flex justify-end items-center">
+        <div class="flex items-center gap-4">
+          <!-- Nút bật/tắt bộ lọc -->
+          <button @click="showFilter = !showFilter"
+            class="text-sm text-blue-500 flex items-center gap-1 hover:underline">
+            <FunnelIcon class="w-5 h-5" />
+           
+          </button>
+
+          <!-- Nút lọc nâng cao -->
+          <button @click="showAdvanced = !showAdvanced" v-if="showFilter"
+            class="text-sm text-blue-500 flex items-center gap-1 hover:underline">
+            <AdjustmentsVerticalIcon class="w-5 h-5" />
+            <span>{{ showAdvanced ? 'Ẩn lọc nâng cao' : 'Lọc nâng cao' }}</span>
+          </button>
+        </div>
+
+      </div>
+
+      <transition name="fade">
+        <div v-show="showFilter">
+          <TaskFilter :show-advanced="showAdvanced" @filter="applyFilter" />
+        </div>
+      </transition>
+    </div>
+
 
     <!-- Task List -->
     <div class="p-4 min-h-[300px]">
@@ -13,7 +40,7 @@
           class=" cursor-default select-none bg-white w-full rounded-lg shadow-md p-4 border border-gray-400 hover:bg-gray-50">
           <h2 class="font-semibold text-gray-700 mb-2 flex gap-2 items-center">📌 Đang thực hiện
             <span class="rounded-full flex justify-center items-center w-6 h-6 bg-gray-300">{{ uncompletedTasks.length
-              }}</span>
+            }}</span>
           </h2>
         </div>
         <TaskItem v-for="task in uncompletedTasks" :key="task.id" :task="task" @edit="openTaskModal"
@@ -28,7 +55,7 @@
           <h2 class="font-semibold text-gray-700 flex gap-2 items-center">
             ✅ Đã hoàn thành
             <span class="rounded-full flex justify-center items-center w-6 h-6 bg-gray-300">{{ completedTasks.length
-              }}</span>
+            }}</span>
           </h2>
           <span class="text-sm text-blue-500 underline hover:text-blue-700">
             {{ showCompleted ? 'Ẩn' : 'Hiện' }}
@@ -73,7 +100,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useHead } from '@vueuse/head';
-import { ListBulletIcon } from '@heroicons/vue/24/outline';
+import { AdjustmentsVerticalIcon, FunnelIcon, ListBulletIcon } from '@heroicons/vue/24/outline';
 
 import type { Task } from '@/types/task';
 import { useTaskStore } from '@/stores/task';
@@ -85,6 +112,7 @@ import TaskFilter from '@/components/tasks/TaskFilter.vue';
 import Pagination from '@/components/layout/Pagination.vue';
 import TaskItem from '@/components/tasks/TaskItem.vue';
 import { useCategoryStore } from '@/stores/category';
+import CategoryService from '@/services/CategoryService';
 
 
 useHead({
@@ -110,6 +138,8 @@ const taskStore = useTaskStore();
 const categoryStore = useCategoryStore();
 const allTasks = computed(() => taskStore.tasks);
 const showCompleted = ref(false);
+const showFilter = ref(false);
+const showAdvanced = ref(false); // Toggle lọc nâng cao
 
 
 onMounted(() => {
@@ -120,10 +150,10 @@ const loadTasks = async () => {
   try {
     taskStore.setLoading(true);
     const tasks = await TaskService.getTasks();
+    const categories = await CategoryService.getCategories();
+    categoryStore.setCategories(categories.data);
     taskStore.setTasks(tasks.data);
     // Extract all unique categories from all tasks
-    categoryStore.setCategoriesFromTasks(tasks.data);
-
   } catch (err) {
     taskStore.setError('Lỗi tải danh sách công việc');
   } finally {

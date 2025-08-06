@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import {
   ArrowPathRoundedSquareIcon,
   ArrowRightEndOnRectangleIcon,
@@ -22,19 +22,15 @@ import debounce from 'lodash.debounce';
 import { useCategoryStore } from '@/stores/category';
 import { useUIStore } from '@/stores/ui';
 import { useTaskStore } from '@/stores/task';
+import CategoryService from '@/services/CategoryService';
 
 const ui = useUIStore();
 const taskStore = useTaskStore();
 const showDeleteModal = ref(false);
-const categoryOptions = ref<string[]>([
-  'Work',
-  'Personal',
-  'Urgent',
-  'Later',
-  'Important',
-  
-]); // Danh sách các category
 const categoryStore = useCategoryStore();
+const categoryOptions = computed(() =>
+  categoryStore.categories.map(cat => cat.name)
+);
 
 const localTask = ref({
   title: '',
@@ -50,10 +46,25 @@ watchEffect(() => {
   }
 });
 
-const handleNewCategory = (newTag: string) => {
-  categoryStore.addCategory(newTag);
-  selectedCategories.value.push(newTag);
+
+
+const handleNewCategory = async (newTag: string) => {
+  if (!taskStore.selectedTask?.id) return;
+
+  try {
+    // Gọi API tạo category mới gắn với task
+    const res = await CategoryService.createCategory({
+      name: newTag,
+      task_id: taskStore.selectedTask.id,
+    });
+    const newData = await CategoryService.getCategories()
+    categoryStore.setCategories(newData.data);
+    selectedCategories.value = categoryStore.getCategoriesForTask(taskStore.selectedTask.id);
+  } catch (e) {
+    toast.error('Không thể tạo danh mục mới');
+  }
 };
+
 
 const debouncedSaveChanges = debounce(() => {
   saveChanges();
@@ -64,10 +75,10 @@ const saveChanges = async () => {
   if (taskStore.selectedTask) {
     // Chỉ cập nhật các trường có trong DTO
     const { id, title, status, important, due_date, description } = taskStore.selectedTask;
-    await TaskService.updateTask(id, { title, status, important, due_date, description, category_names: selectedCategories.value, });
+    await TaskService.updateTask(id, { title, status, important, due_date, description });
     const response = await TaskService.getTasks();
     taskStore.setTasks(response.data);
-    categoryStore.setCategoriesFromTasks(response.data);
+    categoryStore.setCategories(response.data);
   }
 };
 
@@ -108,11 +119,11 @@ const toggleCompleted = async () => {
       category_names: selectedCategories.value,
     });
     toast.success(`Đã đánh dấu là ${newStatus === 'completed' ? 'hoàn thành' : 'chưa hoàn thành'}`);
-    
+
     // Cập nhật lại danh sách task
     const response = await TaskService.getTasks();
     taskStore.setTasks(response.data);
-    categoryStore.setCategoriesFromTasks(response.data);
+    categoryStore.setCategories(response.data);
   } catch (err) {
     toast.error('Cập nhật trạng thái thất bại!');
   }
@@ -132,7 +143,7 @@ const toggleCollapse = () => {
           <div class="flex items-center gap-2 w-full">
             <input type="checkbox" name="check" id="check" class="w-6 h-6"
               :checked="taskStore.selectedTask.status === 'completed'" @change="toggleCompleted" />
-            
+
             <input v-model="taskStore.selectedTask.title"
               class="w-full p-2 border-b border-b-gray-500 focus:outline-none" @change="debouncedSaveChanges" />
             <button @click="toggleImportant(taskStore.selectedTask.id)" class="cursor-pointer"
@@ -188,9 +199,8 @@ const toggleCollapse = () => {
             <TagIcon class="w-6 h-6 text-black" />
             <div class="flex flex-1 gap-1">
               <span v-for="category in selectedCategories" :key="category"></span>
-              <Multiselect v-model="selectedCategories" :multiple="true" :options="categoryOptions" mode="tags" taggable
-                :createTag="true" placeholder="Chọn hoặc thêm danh mục" :searchable="true" @tag="handleNewCategory"
-                @change="debouncedSaveChanges" class="w-full" />
+              <Multiselect v-model="selectedCategories" :multiple="true" :options="categoryOptions" mode="tags" :taggable="true" :createTag="true" placeholder="Chọn hoặc thêm danh mục" :searchable="true" @tag="handleNewCategory" @select="handleNewCategory" @close="" class="w-full" />
+
             </div>
 
 

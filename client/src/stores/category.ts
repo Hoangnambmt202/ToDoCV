@@ -1,39 +1,28 @@
-// src/stores/category.ts
-import { defineStore } from 'pinia';
 import { ref } from 'vue';
+import { defineStore } from 'pinia';
+type Category = {
+  id: number;
+  name: string;
+  task_ids: number[];
+};
 
 export const useCategoryStore = defineStore('category', () => {
-  const categories = ref<string[]>([]);
-  const taskCategories = ref<Record<number, string[]>>({});
+  const categories = ref<Category[]>([]); // 🟢 Đúng kiểu dữ liệu
 
-  const setCategoriesFromTasks = (tasks: any[]) => {
-    const categorySet = new Set<string>();
-    const taskCategoryMap: Record<number, string[]> = {};
-
-    tasks.forEach(task => {
-      task.categories?.forEach((cat: string) => categorySet.add(cat));
-      taskCategoryMap[task.id] = task.categories || [];
-    });
-
-    categories.value = Array.from(categorySet);
-    taskCategories.value = taskCategoryMap;
+  const getCategoriesForTask = (taskId: number): string[] => {
+   
+    const filtered = categories.value.filter(cat => cat.task_ids.includes(taskId));
+    const names = filtered.map(cat => cat.name);
+    return names;
   };
 
-  const getCategoriesForTask = (taskId: number) => {
-    return taskCategories.value[taskId] || [];
-  };
-
-  const addCategory = (newCat: string) => {
-    if (!categories.value.includes(newCat)) {
-      categories.value.push(newCat);
-    }
+  const setCategories = (newCategories: typeof categories.value) => {
+    categories.value = newCategories;
   };
 
   return {
     categories,
-    taskCategories,
-    setCategoriesFromTasks,
     getCategoriesForTask,
-    addCategory,
+    setCategories
   };
 });

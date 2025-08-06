@@ -3,15 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Category extends Model
 {
-    protected $fillable = ['user_id', 'name'];
+    protected $fillable = ['name'];
 
    public function tasks()
 {
-    return $this->belongsToMany(Task::class, 'task_category', 'category_id', 'task_id');
+    return $this->belongsToMany(Task::class, 'category_task')
+        ->withTimestamps()
+        ->withPivot('user_id');
 }
 
 }
-

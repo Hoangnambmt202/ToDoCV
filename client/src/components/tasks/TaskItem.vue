@@ -10,10 +10,11 @@
           <CalendarIcon class="h-4 w-4 mr-1" />
           <span class="text-sm">{{ task.due_date }}</span>
         </span>
-        <span v-for="category in categoryStore.getCategoriesForTask(task.id)" :key="category"
-          :class="`text-xs px-2 py-0.5 rounded-full flex items-center gap-1 ${getCategoryColorClass(category)}`">
-          <span><TagIcon :class="`w-4 h-4 text-gray-500`"/></span>
-          {{ category }}
+        <span 
+          v-for="category in categoryStore.getCategoriesForTask(task.id)"
+          :class="`text-xs px-2 py-0.5 rounded-full flex items-center gap-1`">
+          <span><TagIcon :class="`w-4 h-4 text-gray-500 4 ${getCategoryColorClass}`"/></span>
+          {{ category}}
         </span>
       </div>
     </div>
@@ -61,15 +62,14 @@ const props = defineProps<{
   };
 }>();
 
+
 const getCategoryColorClass = (category: string) => {
   const colorMap: Record<string, string> = {
-    Work: 'bg-blue-100 text-blue-700',
-    Personal: 'bg-pink-100 text-pink-700',
-    Urgent: 'bg-red-100 text-red-700',
-    Important: 'bg-yellow-100 text-yellow-700',
-    'Low Priority': 'bg-gray-100 text-gray-700',
-    'High Priority': 'bg-purple-100 text-purple-700',
-    Later: 'bg-green-100 text-green-700',
+    home: 'bg-blue-100 text-blue-700',
+    Nhà: 'bg-pink-100 text-pink-700',
+    gap: 'bg-red-100 text-red-700',
+    hehe: 'bg-yellow-100 text-yellow-700',
+   
   };
 
   return colorMap[category] || 'bg-gray-100 text-gray-700'; // mặc định nếu không có

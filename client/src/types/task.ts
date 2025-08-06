@@ -26,3 +26,11 @@ export interface UpdateTaskDto {
   user_id?: number;
   category_names?: string[]; // Danh sách tên danh mục
 }
+
+export interface Category {
+  id: number;
+  name: string;
+  user_id: number;
+  created_at: string;
+  updated_at: string;
+}

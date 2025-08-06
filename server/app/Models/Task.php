@@ -15,17 +15,16 @@ class Task extends Model
         'due_date',
         'important',
         'user_id',
+
     ];
-    // App\Models\Task.php
+
 
     public function categories()
     {
-        return $this->belongsToMany(Category::class, 'task_category')
+        return $this->belongsToMany(Category::class, 'category_task')
+            ->withTimestamps()
             ->withPivot('user_id');
     }
-
-
-
 
     public function user()
     {
